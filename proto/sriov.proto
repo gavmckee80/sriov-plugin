@@ -1,0 +1,24 @@
+syntax = "proto3";
+package sriov;
+
+option go_package = "example.com/sriov-plugin/proto;proto";
+
+message Empty {}
+
+message Device {
+  string pci_address = 1;
+  string name = 2;
+  string driver = 3;
+  string vendor = 4;
+  string product = 5;
+}
+
+message ListDevicesRequest {}
+
+message ListDevicesResponse {
+  repeated Device devices = 1;
+}
+
+service SRIOVManager {
+  rpc ListDevices (ListDevicesRequest) returns (ListDevicesResponse);
+}
