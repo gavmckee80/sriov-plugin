@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"net"
 	"os"
@@ -22,13 +23,31 @@ func (s *server) ListDevices(ctx context.Context, in *pb.ListDevicesRequest) (*p
 	log.Printf("📋 ListDevices request received - returning %d devices", len(s.devices))
 	resp := &pb.ListDevicesResponse{}
 	for _, d := range s.devices {
-		resp.Devices = append(resp.Devices, &pb.Device{
-			PciAddress: d.PCIAddress,
-			Name:       d.Name,
-			Driver:     d.Driver,
-			Vendor:     d.Vendor,
-			Product:    d.Product,
-		})
+		device := &pb.Device{
+			PciAddress:   d.PCIAddress,
+			Name:         d.Name,
+			Driver:       d.Driver,
+			Vendor:       d.Vendor,
+			Product:      d.Product,
+			SriovCapable: d.SRIOVCapable,
+		}
+
+		// Add detailed capabilities
+		if len(d.DetailedCapabilities) > 0 {
+			device.DetailedCapabilities = make(map[string]*pb.DetailedCapability)
+			for name, cap := range d.DetailedCapabilities {
+				device.DetailedCapabilities[name] = &pb.DetailedCapability{
+					Id:          cap.ID,
+					Name:        cap.Name,
+					Version:     cap.Version,
+					Status:      cap.Status,
+					Parameters:  cap.Parameters,
+					Description: cap.Description,
+				}
+			}
+		}
+
+		resp.Devices = append(resp.Devices, device)
 	}
 	return resp, nil
 }
@@ -49,6 +68,43 @@ func debugPrintDeviceInfo(devices []pkg.Device) {
 		log.Printf("     Vendor: %s", device.Vendor)
 		log.Printf("     Product: %s", device.Product)
 		log.Printf("     SR-IOV Capable: %t", device.SRIOVCapable)
+
+		// Enhanced context information
+		if device.Description != "" {
+			log.Printf("     Description: %s", device.Description)
+		}
+		if device.Serial != "" {
+			log.Printf("     Serial: %s", device.Serial)
+		}
+		if device.Size != "" {
+			log.Printf("     Size: %s", device.Size)
+		}
+		if device.Capacity != "" {
+			log.Printf("     Capacity: %s", device.Capacity)
+		}
+		if device.Clock != "" {
+			log.Printf("     Clock: %s", device.Clock)
+		}
+		if device.Width != "" {
+			log.Printf("     Width: %s", device.Width)
+		}
+		if device.Class != "" {
+			log.Printf("     Class: %s", device.Class)
+		}
+		if device.SubClass != "" {
+			log.Printf("     SubClass: %s", device.SubClass)
+		}
+		if len(device.Capabilities) > 0 {
+			log.Printf("     Capabilities: %v", device.Capabilities)
+		}
+
+		// Detailed capability information
+		if len(device.DetailedCapabilities) > 0 {
+			log.Printf("     Detailed Capabilities:")
+			for capName, cap := range device.DetailedCapabilities {
+				log.Printf("       [%s] %s: %s", cap.ID, capName, cap.Description)
+			}
+		}
 
 		if device.SRIOVCapable && device.SRIOVInfo != nil {
 			sriovCount++
@@ -74,26 +130,47 @@ func debugPrintDeviceInfo(devices []pkg.Device) {
 }
 
 func main() {
+	// Parse command line flags
+	var (
+		useFile  = flag.Bool("file", false, "Use static lshw file for testing (default: dynamic lshw)")
+		lshwFile = flag.String("lshw-file", "lshw-network.json", "Path to lshw JSON file (when using -file)")
+	)
+	flag.Parse()
+
 	startTime := time.Now()
 	log.Printf("🚀 Starting SR-IOV Manager Server...")
 
-	// Check if lshw file exists
-	lshw := "lshw-network.json"
-	if _, err := os.Stat(lshw); os.IsNotExist(err) {
-		log.Printf("⚠️  Warning: %s not found, using mock data", lshw)
-		// Use mock data for development
-		lshw = "lshw-network.json" // This will fail, but we'll handle it gracefully
-	}
+	var devices []pkg.Device
+	var err error
 
-	log.Printf("📁 Parsing lshw data from: %s", lshw)
-	devices, err := pkg.ParseLshw(lshw)
-	if err != nil {
-		log.Printf("❌ Failed to parse lshw output: %v", err)
-		log.Printf("🔄 Falling back to mock data for development...")
-		// For development, we could create mock data here
-		devices = []pkg.Device{}
+	if *useFile {
+		// Development/Testing mode: Use static file
+		log.Printf("📁 Development mode: Parsing lshw data from file: %s", *lshwFile)
+		if _, err := os.Stat(*lshwFile); os.IsNotExist(err) {
+			log.Printf("⚠️  Warning: %s not found, using empty device list", *lshwFile)
+			devices = []pkg.Device{}
+		} else {
+			devices, err = pkg.ParseLshwFromFile(*lshwFile)
+			if err != nil {
+				log.Printf("❌ Failed to parse lshw file: %v", err)
+				log.Printf("🔄 Falling back to empty device list...")
+				devices = []pkg.Device{}
+			} else {
+				log.Printf("✅ Successfully parsed %d devices from lshw file", len(devices))
+			}
+		}
 	} else {
-		log.Printf("✅ Successfully parsed %d devices from lshw", len(devices))
+		// Production mode: Run lshw dynamically
+		log.Printf("🔍 Production mode: Running lshw -class network -json dynamically")
+		lshwStart := time.Now()
+		devices, err = pkg.ParseLshwDynamic()
+		if err != nil {
+			log.Printf("❌ Failed to run lshw: %v", err)
+			log.Printf("🔄 Falling back to empty device list...")
+			devices = []pkg.Device{}
+		} else {
+			log.Printf("✅ Successfully gathered %d devices from lshw in %v", len(devices), time.Since(lshwStart))
+		}
 	}
 
 	log.Printf("🔧 Enriching devices with PCI information...")

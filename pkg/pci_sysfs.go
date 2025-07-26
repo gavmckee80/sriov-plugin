@@ -64,8 +64,20 @@ type SysfsPciDevice struct {
 	// SR-IOV specific fields
 	SRIOVCapable bool
 	SRIOVInfo    *SRIOVInfo
-	// Additional capabilities
+	// Basic capabilities
 	Capabilities map[string]string
+	// Detailed capability information
+	DetailedCapabilities map[string]DetailedCapability
+}
+
+// DetailedCapability holds detailed information about a PCI capability
+type DetailedCapability struct {
+	ID          string
+	Name        string
+	Version     string
+	Status      string
+	Parameters  map[string]string
+	Description string
 }
 
 // loadVendorDatabase loads and parses the PCI vendor database
@@ -258,6 +270,11 @@ func parseSysfsPciDevice(devicePath, deviceName string, vendorDB *VendorDatabase
 		// Capabilities might not be accessible, continue
 	}
 
+	// Parse detailed PCI capabilities
+	if err := parseDetailedPciCapabilities(devicePath, &device); err != nil {
+		// Detailed capabilities might not be available, continue
+	}
+
 	// Enrich with vendor database information
 	enrichSysfsDeviceWithVendorDB(&device, vendorDB)
 
@@ -444,6 +461,11 @@ func parsePciCapabilities(devicePath string, device *SysfsPciDevice) error {
 		// PM might not be available, continue
 	}
 
+	// Parse detailed capabilities
+	if err := parseDetailedPciCapabilities(devicePath, device); err != nil {
+		// Detailed capabilities might not be available, continue
+	}
+
 	return nil
 }
 
@@ -470,7 +492,7 @@ func parsePCIExpressCapability(devicePath string, device *SysfsPciDevice) error 
 	}
 
 	// Read PCIe link status
-	linkStatusPath := filepath.Join(devicePath, "pcie_link_status")
+	linkStatusPath := filepath.Join(devicePath, "pcie_cap", "link_status")
 	if linkData, err := os.ReadFile(linkStatusPath); err == nil {
 		device.Capabilities["PCI Express"] = fmt.Sprintf("Link Status: %s", strings.TrimSpace(string(linkData)))
 	}
@@ -491,6 +513,201 @@ func parsePowerManagementCapability(devicePath string, device *SysfsPciDevice) e
 		device.Capabilities["Power Management"] = fmt.Sprintf("Status: %s", strings.TrimSpace(string(powerData)))
 	}
 
+	return nil
+}
+
+// parseDetailedPciCapabilities parses detailed PCI capability information
+func parseDetailedPciCapabilities(devicePath string, device *SysfsPciDevice) error {
+	device.DetailedCapabilities = make(map[string]DetailedCapability)
+
+	// Parse MSI-X capability
+	if err := parseDetailedMSIXCapability(devicePath, device); err != nil {
+		// Continue even if MSI-X parsing fails
+		fmt.Printf("DEBUG: MSI-X parsing failed for %s: %v\n", devicePath, err)
+	} else {
+		fmt.Printf("DEBUG: MSI-X parsing succeeded for %s\n", devicePath)
+	}
+
+	// Parse PCI Express capability
+	if err := parseDetailedPCIExpressCapability(devicePath, device); err != nil {
+		// Continue even if PCIe parsing fails
+		fmt.Printf("DEBUG: PCIe parsing failed for %s: %v\n", devicePath, err)
+	} else {
+		fmt.Printf("DEBUG: PCIe parsing succeeded for %s\n", devicePath)
+	}
+
+	// Parse Power Management capability
+	if err := parseDetailedPowerManagementCapability(devicePath, device); err != nil {
+		// Continue even if PM parsing fails
+		fmt.Printf("DEBUG: PM parsing failed for %s: %v\n", devicePath, err)
+	} else {
+		fmt.Printf("DEBUG: PM parsing succeeded for %s\n", devicePath)
+	}
+
+	// Parse SR-IOV capability (if present)
+	if err := parseDetailedSRIOVCapability(devicePath, device); err != nil {
+		// Continue even if SR-IOV parsing fails
+		fmt.Printf("DEBUG: SR-IOV parsing failed for %s: %v\n", devicePath, err)
+	} else {
+		fmt.Printf("DEBUG: SR-IOV parsing succeeded for %s\n", devicePath)
+	}
+
+	fmt.Printf("DEBUG: Total detailed capabilities found for %s: %d\n", devicePath, len(device.DetailedCapabilities))
+	return nil
+}
+
+// parseDetailedMSIXCapability parses detailed MSI-X capability information
+func parseDetailedMSIXCapability(devicePath string, device *SysfsPciDevice) error {
+	msixPath := filepath.Join(devicePath, "msi_irqs")
+	if _, err := os.Stat(msixPath); os.IsNotExist(err) {
+		return fmt.Errorf("MSI-X not available")
+	}
+
+	// Read MSI-X configuration
+	entries, err := os.ReadDir(msixPath)
+	if err != nil {
+		return err
+	}
+
+	// Count MSI-X vectors
+	vectorCount := len(entries)
+
+	// Check if MSI-X is enabled
+	enabled := "Enable+"
+	if vectorCount == 0 {
+		enabled = "Enable-"
+	}
+
+	// Check masking status (simplified - in real implementation you'd read the mask register)
+	masked := "Masked-"
+
+	capability := DetailedCapability{
+		ID:          "9c",
+		Name:        "MSI-X",
+		Status:      fmt.Sprintf("%s Count=%d %s", enabled, vectorCount, masked),
+		Description: fmt.Sprintf("MSI-X: %s Count=%d %s", enabled, vectorCount, masked),
+		Parameters: map[string]string{
+			"enabled": enabled,
+			"count":   strconv.Itoa(vectorCount),
+			"masked":  masked,
+		},
+	}
+
+	device.DetailedCapabilities["MSI-X"] = capability
+	return nil
+}
+
+// parseDetailedPCIExpressCapability parses detailed PCI Express capability information
+func parseDetailedPCIExpressCapability(devicePath string, device *SysfsPciDevice) error {
+	// Check for PCIe link information
+	linkSpeedPath := filepath.Join(devicePath, "current_link_speed")
+	linkWidthPath := filepath.Join(devicePath, "current_link_width")
+
+	linkSpeed := "Unknown"
+	if data, err := os.ReadFile(linkSpeedPath); err == nil {
+		linkSpeed = strings.TrimSpace(string(data))
+	}
+
+	linkWidth := "Unknown"
+	if data, err := os.ReadFile(linkWidthPath); err == nil {
+		linkWidth = strings.TrimSpace(string(data))
+	}
+
+	// Determine link status
+	linkStatus := "Link Up"
+	if linkSpeed == "Unknown" || linkWidth == "Unknown" {
+		linkStatus = "Link Down"
+	}
+
+	capability := DetailedCapability{
+		ID:          "10",
+		Name:        "PCI Express",
+		Status:      fmt.Sprintf("Link: %s %s x%s", linkStatus, linkSpeed, linkWidth),
+		Description: fmt.Sprintf("PCI Express: Link: %s %s x%s", linkStatus, linkSpeed, linkWidth),
+		Parameters: map[string]string{
+			"link_status": linkStatus,
+			"link_speed":  linkSpeed,
+			"link_width":  linkWidth,
+		},
+	}
+
+	device.DetailedCapabilities["PCI Express"] = capability
+	return nil
+}
+
+// parseDetailedPowerManagementCapability parses detailed Power Management capability information
+func parseDetailedPowerManagementCapability(devicePath string, device *SysfsPciDevice) error {
+	pmPath := filepath.Join(devicePath, "power")
+	if _, err := os.Stat(pmPath); os.IsNotExist(err) {
+		return fmt.Errorf("Power Management not available")
+	}
+
+	// Check current power state
+	powerState := "D0"
+	if data, err := os.ReadFile(filepath.Join(pmPath, "runtime_status")); err == nil {
+		powerState = strings.TrimSpace(string(data))
+	}
+
+	// Check if power management is enabled
+	enabled := "Enable+"
+	if powerState == "suspended" {
+		enabled = "Enable-"
+	}
+
+	capability := DetailedCapability{
+		ID:          "01",
+		Name:        "Power Management",
+		Status:      fmt.Sprintf("%s D0", enabled),
+		Description: fmt.Sprintf("Power Management: %s D0", enabled),
+		Parameters: map[string]string{
+			"enabled":     enabled,
+			"power_state": powerState,
+		},
+	}
+
+	device.DetailedCapabilities["Power Management"] = capability
+	return nil
+}
+
+// parseDetailedSRIOVCapability parses detailed SR-IOV capability information
+func parseDetailedSRIOVCapability(devicePath string, device *SysfsPciDevice) error {
+	sriovPath := filepath.Join(devicePath, "sriov_totalvfs")
+	if _, err := os.Stat(sriovPath); os.IsNotExist(err) {
+		return fmt.Errorf("SR-IOV not available")
+	}
+
+	// Read total VFs
+	totalVFs := "0"
+	if data, err := os.ReadFile(sriovPath); err == nil {
+		totalVFs = strings.TrimSpace(string(data))
+	}
+
+	// Read number of VFs
+	numVFs := "0"
+	numVFsPath := filepath.Join(devicePath, "sriov_numvfs")
+	if data, err := os.ReadFile(numVFsPath); err == nil {
+		numVFs = strings.TrimSpace(string(data))
+	}
+
+	// Check if SR-IOV is enabled
+	enabled := "Enable-"
+	if numVFs != "0" {
+		enabled = "Enable+"
+	}
+
+	capability := DetailedCapability{
+		ID:          "180",
+		Name:        "Single Root I/O Virtualization (SR-IOV)",
+		Status:      fmt.Sprintf("IOVCtl: %s Migration- Interrupt- MSE+ ARIHierarchy+", enabled),
+		Description: fmt.Sprintf("SR-IOV: IOVCtl: %s Migration- Interrupt- MSE+ ARIHierarchy+", enabled),
+		Parameters: map[string]string{
+			"enabled":   enabled,
+			"total_vfs": totalVFs,
+			"num_vfs":   numVFs,
+		},
+	}
+
+	device.DetailedCapabilities["SR-IOV"] = capability
 	return nil
 }
 

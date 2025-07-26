@@ -6,9 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os"
 	"strings"
-	"text/tabwriter"
 	"time"
 
 	pb "example.com/sriov-plugin/proto"
@@ -17,11 +15,22 @@ import (
 
 // DeviceInfo holds formatted device information for output
 type DeviceInfo struct {
-	PCIAddress string `json:"pci_address"`
-	Name       string `json:"name"`
-	Driver     string `json:"driver"`
-	Vendor     string `json:"vendor"`
-	Product    string `json:"product"`
+	PCIAddress           string                            `json:"pci_address"`
+	Name                 string                            `json:"name"`
+	Driver               string                            `json:"driver"`
+	Vendor               string                            `json:"vendor"`
+	Product              string                            `json:"product"`
+	SRIOVCapable         bool                              `json:"sriov_capable"`
+	DetailedCapabilities map[string]DetailedCapabilityInfo `json:"detailed_capabilities,omitempty"`
+}
+
+// DetailedCapabilityInfo holds formatted detailed capability information
+type DetailedCapabilityInfo struct {
+	ID          string            `json:"id"`
+	Name        string            `json:"name"`
+	Status      string            `json:"status"`
+	Description string            `json:"description"`
+	Parameters  map[string]string `json:"parameters,omitempty"`
 }
 
 // OutputFormat defines the output format
@@ -76,13 +85,30 @@ func main() {
 	// Convert to DeviceInfo for consistent formatting
 	devices := make([]DeviceInfo, len(r.Devices))
 	for i, d := range r.Devices {
-		devices[i] = DeviceInfo{
-			PCIAddress: d.PciAddress,
-			Name:       d.Name,
-			Driver:     d.Driver,
-			Vendor:     d.Vendor,
-			Product:    d.Product,
+		deviceInfo := DeviceInfo{
+			PCIAddress:   d.PciAddress,
+			Name:         d.Name,
+			Driver:       d.Driver,
+			Vendor:       d.Vendor,
+			Product:      d.Product,
+			SRIOVCapable: d.SriovCapable,
 		}
+
+		// Add detailed capabilities if available
+		if len(d.DetailedCapabilities) > 0 {
+			deviceInfo.DetailedCapabilities = make(map[string]DetailedCapabilityInfo)
+			for name, cap := range d.DetailedCapabilities {
+				deviceInfo.DetailedCapabilities[name] = DetailedCapabilityInfo{
+					ID:          cap.Id,
+					Name:        cap.Name,
+					Status:      cap.Status,
+					Description: cap.Description,
+					Parameters:  cap.Parameters,
+				}
+			}
+		}
+
+		devices[i] = deviceInfo
 	}
 
 	// Output based on format
@@ -98,22 +124,27 @@ func main() {
 
 // printTable prints devices in a formatted table
 func printTable(devices []DeviceInfo) {
-	fmt.Println("\n📊 SR-IOV Network Devices")
-	fmt.Println(strings.Repeat("=", 80))
+	fmt.Printf("\n📊 SR-IOV Network Devices\n")
+	fmt.Printf("================================================================================\n")
+	fmt.Printf("%-12s %-16s %-12s %-20s %-30s %-8s\n", "PCI Address", "Name", "Driver", "Vendor", "Product", "SR-IOV")
+	fmt.Printf("%-12s %-16s %-12s %-20s %-30s %-8s\n", "-----------", "----", "------", "------", "-------", "------")
 
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "PCI Address\tName\tDriver\tVendor\tProduct")
-	fmt.Fprintln(w, "-----------\t----\t------\t------\t-------")
+	for _, device := range devices {
+		sriovStatus := "No"
+		if device.SRIOVCapable {
+			sriovStatus = "Yes"
+		}
 
-	for _, d := range devices {
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n",
-			d.PCIAddress,
-			d.Name,
-			d.Driver,
-			d.Vendor,
-			d.Product)
+		fmt.Printf("%-12s %-16s %-12s %-20s %-30s %-8s\n",
+			device.PCIAddress, device.Name, device.Driver, device.Vendor, device.Product, sriovStatus)
+
+		// Show detailed capabilities if available
+		if len(device.DetailedCapabilities) > 0 {
+			for name, cap := range device.DetailedCapabilities {
+				fmt.Printf("  └─ [%s] %s: %s\n", cap.ID, name, cap.Description)
+			}
+		}
 	}
-	w.Flush()
 
 	fmt.Printf("\n📈 Summary: %d devices found\n", len(devices))
 }

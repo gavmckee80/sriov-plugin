@@ -5,12 +5,23 @@ option go_package = "example.com/sriov-plugin/proto;proto";
 
 message Empty {}
 
+message DetailedCapability {
+  string id = 1;
+  string name = 2;
+  string version = 3;
+  string status = 4;
+  map<string, string> parameters = 5;
+  string description = 6;
+}
+
 message Device {
   string pci_address = 1;
   string name = 2;
   string driver = 3;
   string vendor = 4;
   string product = 5;
+  bool sriov_capable = 6;
+  map<string, DetailedCapability> detailed_capabilities = 7;
 }
 
 message ListDevicesRequest {}

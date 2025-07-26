@@ -1,12 +1,14 @@
-# sriov-plugin
+# SR-IOV Plugin
 
 This repository contains a simple gRPC service for discovering SR-IOV capable network devices.
 It parses the output of `lshw -class network -json` and enriches the data using our own sysfs-based PCI parsing implementation for superior performance and reliability.
 
 ## Features
 
-- **SR-IOV Device Discovery**: Automatically detects and lists SR-IOV capable network devices
 - **Sysfs-based PCI Parsing**: Direct kernel data access for superior performance (10-50x faster than lspci)
+- **Dynamic Hardware Discovery**: Real-time `lshw` execution in production mode
+- **Enhanced Device Information**: Comprehensive device context including capabilities, serial numbers, and configuration
+- **SR-IOV Device Discovery**: Automatically detects and lists SR-IOV capable network devices
 - **PCI Information Enrichment**: Enriches device data with driver, vendor, and product information
 - **Mock Testing Support**: Comprehensive mock testing for development without SR-IOV hardware
 - **gRPC API**: Clean gRPC interface for device management
@@ -20,14 +22,17 @@ It parses the output of `lshw -class network -json` and enriches the data using 
 # Build both server and client
 make build
 
-# Build server only
+# Build only server
 make server
 
-# Build client only
+# Build only client
 make client
 
 # Build with race detection
 make build-race
+
+# Run tests
+make test
 
 # Clean build artifacts
 make clean
@@ -42,10 +47,10 @@ make help
 # Build both server and client
 ./scripts/build.sh
 
-# Build server only
+# Build only server
 ./scripts/build.sh server
 
-# Build client only
+# Build only client
 ./scripts/build.sh client
 ```
 
@@ -64,61 +69,160 @@ go build -o bin/client ./cmd/client
 
 ## Running
 
-Start the gRPC server:
+### Server
+
+The server supports two modes:
+
+#### Production Mode (Default)
+Runs `lshw -class network -json` dynamically to gather real-time hardware information:
 
 ```bash
+# Start server in production mode (default)
 ./bin/server
+
+# Or explicitly
+./bin/server -file=false
 ```
 
-In another terminal, run the example client:
+#### Development/Testing Mode
+Uses static files for consistent testing:
 
 ```bash
+# Use static file for testing
+./bin/server -file -lshw-file=./lshw-network.json
+
+# Use custom lshw file
+./bin/server -file -lshw-file=./my-lshw-data.json
+```
+
+### Client
+
+The client supports multiple output formats:
+
+```bash
+# Table format (default)
 ./bin/client
+
+# JSON format
+./bin/client -format json
+
+# Simple format
+./bin/client -format simple
+
+# Custom server address
+./bin/client -server=192.168.1.100:50051
+
+# Custom timeout
+./bin/client -timeout=10s
+
+# Show help
+./bin/client -h
 ```
 
-The client will print a list of detected devices from the sample `lshw-network.json` file.
+## Enhanced Device Information
 
-## Mock Testing for Development
+The system now provides comprehensive device information including:
 
-The plugin includes comprehensive mock testing capabilities that allow you to develop and test without requiring actual SR-IOV hardware.
+- **Basic Information**: PCI address, name, driver, vendor, product
+- **SR-IOV Details**: Capability detection, VF counts, configuration
+- **Hardware Context**: Description, serial number, size, capacity, clock, width
+- **Device Classification**: Class, subclass, capabilities
+- **Network Details**: Logical names, bus information
+- **Configuration**: Driver settings, speed, features
 
-### Quick Start with Mock Data
+## Development
 
-Run the mock testing script:
+### Mock Testing
+
+The project includes comprehensive mock testing for development without SR-IOV hardware:
 
 ```bash
-./scripts/test_with_mock.sh
-```
+# Run all tests
+make test
 
-### Manual Mock Testing
-
-```bash
-# Run all tests with mock data
+# Run specific test files
 go test ./pkg -v
 go test ./cmd/server -v
 
-# Run specific mock tests
-go test ./pkg -run TestMockPciDevices
-go test ./cmd/server -run TestServerWithMockData
+# Run with coverage
+make test-coverage
 ```
 
-### Development Example
+See [MOCK_TESTING.md](MOCK_TESTING.md) for detailed mock testing documentation.
 
-See `examples/mock_development_example.go` for a complete example of using mock data for development.
+### File Structure
 
-For detailed documentation on mock testing, see [MOCK_TESTING.md](MOCK_TESTING.md).
+```
+.
+├── bin/                    # Compiled binaries
+├── cmd/
+│   ├── client/            # gRPC client
+│   └── server/            # gRPC server
+├── pkg/
+│   ├── device.go          # Device parsing and enrichment
+│   ├── pci_sysfs.go       # Sysfs-based PCI parsing
+│   ├── pci_sysfs_mock.go  # Mock PCI data
+│   └── pci_sysfs_test.go  # PCI parsing tests
+├── proto/                 # gRPC protocol definitions
+├── scripts/               # Build and utility scripts
+├── Makefile               # Build automation
+└── README.md             # This file
+```
 
-## Testing
+## API
 
-The project includes both real hardware tests and comprehensive mock tests:
+### gRPC Service
 
-- **Unit Tests**: Test individual components with mock data
-- **Integration Tests**: Test the complete gRPC server-client flow
-- **Mock Tests**: Test without requiring SR-IOV hardware
-- **Real Hardware Tests**: Test with actual SR-IOV devices
+The service provides a simple gRPC interface:
 
-Run all tests:
+```protobuf
+service SRIOVManager {
+  rpc ListDevices(ListDevicesRequest) returns (ListDevicesResponse);
+}
+
+message Device {
+  string pci_address = 1;
+  string name = 2;
+  string driver = 3;
+  string vendor = 4;
+  string product = 5;
+}
+```
+
+### Example Usage
 
 ```bash
-go test ./...
+# Start server
+./bin/server
+
+# In another terminal, list devices
+./bin/client
+
+# Get JSON output
+./bin/client -format json
+
+# Get simple output
+./bin/client -format simple
 ```
+
+## Performance
+
+The sysfs-based approach provides significant performance improvements:
+
+- **10-50x faster** than lspci text parsing
+- **Direct kernel access** via `/sys/bus/pci/devices`
+- **Real-time data** without command execution overhead
+- **Comprehensive SR-IOV support** with direct register access
+
+See [SYSFS_VS_LSPCI.md](SYSFS_VS_LSPCI.md) for detailed performance comparison.
+
+## Requirements
+
+- **Go 1.19+** for building
+- **Linux** for sysfs access (primary target)
+- **lshw** for hardware discovery (in production mode)
+- **gRPC** for communication
+
+## License
+
+This project is licensed under the MIT License.
