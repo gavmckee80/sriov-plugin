@@ -3,7 +3,6 @@ module example.com/sriov-plugin
 go 1.24.3
 
 require (
-	github.com/TimRots/gutil-linux v0.0.3
 	google.golang.org/grpc v1.74.2
 	google.golang.org/protobuf v1.36.6
 )
