@@ -1,8 +1,27 @@
 # sriov-plugin
-A tool in Go that allows management of an SR-IOV capable NIC
 
+This repository contains a simple gRPC service for discovering SR-IOV capable network devices.
+It parses the output of `lshw -class network -json` and enriches the data using the
+[`gutil-linux`](https://github.com/TimRots/gutil-linux) library to read PCI information.
 
+## Building
 
-https://github.com/TimRots/gutil-linux/blob/master/cmd/lspci/lspci.go
+```
+go build ./cmd/server
+```
 
-https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin
+## Running
+
+Start the gRPC server:
+
+```
+./server
+```
+
+In another terminal, run the example client:
+
+```
+go run ./cmd/client
+```
+
+The client will print a list of detected devices from the sample `lshw-network.json` file.
