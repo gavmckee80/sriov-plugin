@@ -8,16 +8,14 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"strings"
+	"path/filepath"
 	"sync"
 	"syscall"
 	"time"
 
-	"unsafe"
-
 	"example.com/sriov-plugin/pkg"
 	pb "example.com/sriov-plugin/proto"
-	"golang.org/x/sys/unix"
+	"github.com/fsnotify/fsnotify"
 	"google.golang.org/grpc"
 )
 
@@ -200,62 +198,47 @@ func (s *server) watchSriovConfigurations() {
 	}()
 }
 
-// monitorDirectory uses inotify to monitor directory changes
+// monitorDirectory uses fsnotify to monitor directory changes
 func (s *server) monitorDirectory(path, eventType string, events chan<- DeviceEvent) error {
-	fd, err := unix.InotifyInit()
+	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		return fmt.Errorf("failed to initialize inotify: %v", err)
+		return fmt.Errorf("failed to create fsnotify watcher: %v", err)
 	}
-	defer unix.Close(fd)
+	defer watcher.Close()
 
-	// Add watch for the directory
-	wd, err := unix.InotifyAddWatch(fd, path, unix.IN_CREATE|unix.IN_DELETE|unix.IN_MODIFY)
+	// Add the directory to watch
+	err = watcher.Add(path)
 	if err != nil {
-		return fmt.Errorf("failed to add inotify watch: %v", err)
+		return fmt.Errorf("failed to add directory to watcher: %v", err)
 	}
-	defer unix.InotifyRmWatch(fd, uint32(wd))
 
-	buffer := make([]byte, 1024)
+	// Process events
 	for {
-		n, err := unix.Read(fd, buffer)
-		if err != nil {
-			return fmt.Errorf("failed to read inotify events: %v", err)
-		}
+		select {
+		case event := <-watcher.Events:
+			// Only process events for files (not directories)
+			if event.Has(fsnotify.Create) || event.Has(fsnotify.Remove) || event.Has(fsnotify.Write) {
+				deviceName := filepath.Base(event.Name)
+				var action string
 
-		offset := 0
-		for offset < n {
-			event := (*unix.InotifyEvent)(unsafe.Pointer(&buffer[offset]))
+				if event.Has(fsnotify.Create) {
+					action = "created"
+				} else if event.Has(fsnotify.Remove) {
+					action = "deleted"
+				} else if event.Has(fsnotify.Write) {
+					action = "modified"
+				}
 
-			var action string
-			if event.Mask&unix.IN_CREATE != 0 {
-				action = "created"
-			} else if event.Mask&unix.IN_DELETE != 0 {
-				action = "deleted"
-			} else if event.Mask&unix.IN_MODIFY != 0 {
-				action = "modified"
-			}
-
-			if action != "" {
-				// Extract filename from the event buffer
-				nameStart := offset + unix.SizeofInotifyEvent
-				nameEnd := nameStart + int(event.Len)
-				if nameEnd <= len(buffer) {
-					deviceName := string(buffer[nameStart:nameEnd])
-					// Remove null terminator
-					if idx := strings.IndexByte(deviceName, 0); idx != -1 {
-						deviceName = deviceName[:idx]
-					}
-
-					events <- DeviceEvent{
-						Type:      eventType,
-						Action:    action,
-						Device:    deviceName,
-						Timestamp: time.Now(),
-					}
+				events <- DeviceEvent{
+					Type:      eventType,
+					Action:    action,
+					Device:    deviceName,
+					Timestamp: time.Now(),
 				}
 			}
-
-			offset += unix.SizeofInotifyEvent + int(event.Len)
+		case err := <-watcher.Errors:
+			log.Printf("fsnotify error for %s: %v", path, err)
+			return err
 		}
 	}
 }

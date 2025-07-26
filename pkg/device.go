@@ -196,19 +196,69 @@ func AttachEthtoolInfo(devices []Device) ([]Device, error) {
 	for i := range devices {
 		// Only get ethtool info for devices with a logical name (network interfaces)
 		if devices[i].LogicalName != "" {
-			fmt.Printf("Processing device %d: LogicalName=%s, Name=%s\n", i, devices[i].LogicalName, devices[i].Name)
-			ethtoolInfo, err := GetEthtoolInfo(devices[i].LogicalName)
-			if err != nil {
-				// Log error but continue with other devices
-				fmt.Printf("Warning: failed to get ethtool info for %s: %v\n", devices[i].LogicalName, err)
-				continue
+			// Skip USB devices and other non-Ethernet interfaces
+			if isEthernetInterface(devices[i].LogicalName, devices[i].Class, devices[i].SubClass) {
+				fmt.Printf("Processing device %d: LogicalName=%s, Name=%s\n", i, devices[i].LogicalName, devices[i].Name)
+				ethtoolInfo, err := GetEthtoolInfo(devices[i].LogicalName)
+				if err != nil {
+					// Log error but continue with other devices
+					fmt.Printf("Warning: failed to get ethtool info for %s: %v\n", devices[i].LogicalName, err)
+					continue
+				}
+				devices[i].EthtoolInfo = ethtoolInfo
+				fmt.Printf("Successfully added ethtool info for %s\n", devices[i].LogicalName)
+			} else {
+				fmt.Printf("Skipping non-Ethernet device %d: LogicalName=%s, Class=%s, SubClass=%s\n", i, devices[i].LogicalName, devices[i].Class, devices[i].SubClass)
 			}
-			devices[i].EthtoolInfo = ethtoolInfo
-			fmt.Printf("Successfully added ethtool info for %s\n", devices[i].LogicalName)
 		} else {
 			fmt.Printf("Skipping device %d: no logical name\n", i)
 		}
 	}
 
 	return devices, nil
+}
+
+// isEthernetInterface checks if a device is an Ethernet interface that supports ethtool
+func isEthernetInterface(logicalName, class, subClass string) bool {
+	// Skip USB devices
+	if strings.HasPrefix(logicalName, "usb") {
+		return false
+	}
+
+	// Skip loopback interfaces
+	if strings.HasPrefix(logicalName, "lo") {
+		return false
+	}
+
+	// Skip wireless interfaces (they may not support all ethtool commands)
+	if strings.HasPrefix(logicalName, "wlan") || strings.HasPrefix(logicalName, "wifi") {
+		return false
+	}
+
+	// Skip virtual interfaces that don't support ethtool
+	if strings.HasPrefix(logicalName, "veth") || strings.HasPrefix(logicalName, "docker") {
+		return false
+	}
+
+	// Check if it's a network interface class
+	if class == "network" {
+		// For network devices, check if it's Ethernet (not wireless, USB, etc.)
+		if subClass == "ethernet" || subClass == "" {
+			return true
+		}
+	}
+
+	// If we can't determine from class/subclass, check if the interface name looks like Ethernet
+	// Common Ethernet interface patterns
+	ethernetPatterns := []string{
+		"en", "eth", "ens", "eno", "enp", "ens", "ens60", "ens61", "ens70", "ens80",
+	}
+
+	for _, pattern := range ethernetPatterns {
+		if strings.HasPrefix(logicalName, pattern) {
+			return true
+		}
+	}
+
+	return false
 }
