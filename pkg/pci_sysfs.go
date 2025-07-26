@@ -209,30 +209,35 @@ func ParseSysfsPciDevices() ([]SysfsPciDevice, error) {
 	var devices []SysfsPciDevice
 	sysfsPath := "/sys/bus/pci/devices"
 
-	// Walk through all PCI devices in sysfs
-	err = filepath.Walk(sysfsPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
+	// Read all entries in sysfs
+	entries, err := os.ReadDir(sysfsPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read sysfs directory: %v", err)
+	}
+
+	// Process each entry that looks like a PCI address
+	for _, entry := range entries {
+		if !isPciAddress(entry.Name()) {
+			continue
 		}
 
-		// Only process directories that look like PCI addresses
-		if !info.IsDir() || !isPciAddress(info.Name()) {
-			return nil
+		// Get the full path to the device
+		devicePath := filepath.Join(sysfsPath, entry.Name())
+		
+		// Check if the device path is accessible
+		if _, err := os.Stat(devicePath); err != nil {
+			// Skip if we can't access the device
+			continue
 		}
 
-		device, err := parseSysfsPciDevice(path, info.Name(), vendorDB)
+		device, err := parseSysfsPciDevice(devicePath, entry.Name(), vendorDB)
 		if err != nil {
 			// Log error but continue with other devices
-			fmt.Printf("Warning: failed to parse device %s: %v\n", info.Name(), err)
-			return nil
+			fmt.Printf("Warning: failed to parse device %s: %v\n", entry.Name(), err)
+			continue
 		}
 
 		devices = append(devices, device)
-		return nil
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to walk sysfs: %v", err)
 	}
 
 	return devices, nil

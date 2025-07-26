@@ -14,6 +14,40 @@ message DetailedCapability {
   string description = 6;
 }
 
+message EthtoolFeature {
+  string name = 1;
+  bool enabled = 2;
+  bool fixed = 3;
+}
+
+message EthtoolRingInfo {
+  uint32 rx_max_pending = 1;
+  uint32 rx_mini_max_pending = 2;
+  uint32 rx_jumbo_max_pending = 3;
+  uint32 tx_max_pending = 4;
+  uint32 rx_pending = 5;
+  uint32 rx_mini_pending = 6;
+  uint32 rx_jumbo_pending = 7;
+  uint32 tx_pending = 8;
+}
+
+message EthtoolChannelInfo {
+  uint32 max_rx = 1;
+  uint32 max_tx = 2;
+  uint32 max_other = 3;
+  uint32 max_combined = 4;
+  uint32 rx_count = 5;
+  uint32 tx_count = 6;
+  uint32 other_count = 7;
+  uint32 combined_count = 8;
+}
+
+message EthtoolInfo {
+  repeated EthtoolFeature features = 1;
+  EthtoolRingInfo ring = 2;
+  EthtoolChannelInfo channels = 3;
+}
+
 message Device {
   string pci_address = 1;
   string name = 2;
@@ -22,6 +56,7 @@ message Device {
   string product = 5;
   bool sriov_capable = 6;
   map<string, DetailedCapability> detailed_capabilities = 7;
+  EthtoolInfo ethtool_info = 8;
 }
 
 message ListDevicesRequest {}
@@ -30,6 +65,15 @@ message ListDevicesResponse {
   repeated Device devices = 1;
 }
 
+message RefreshDevicesRequest {}
+
+message RefreshDevicesResponse {
+  bool success = 1;
+  string message = 2;
+  int32 device_count = 3;
+}
+
 service SRIOVManager {
   rpc ListDevices (ListDevicesRequest) returns (ListDevicesResponse);
+  rpc RefreshDevices (RefreshDevicesRequest) returns (RefreshDevicesResponse);
 }

@@ -22,6 +22,7 @@ type DeviceInfo struct {
 	Product              string                            `json:"product"`
 	SRIOVCapable         bool                              `json:"sriov_capable"`
 	DetailedCapabilities map[string]DetailedCapabilityInfo `json:"detailed_capabilities,omitempty"`
+	EthtoolInfo          *EthtoolInfo                      `json:"ethtool_info,omitempty"`
 }
 
 // DetailedCapabilityInfo holds formatted detailed capability information
@@ -31,6 +32,40 @@ type DetailedCapabilityInfo struct {
 	Status      string            `json:"status"`
 	Description string            `json:"description"`
 	Parameters  map[string]string `json:"parameters,omitempty"`
+}
+
+type EthtoolFeature struct {
+	Name    string `json:"name"`
+	Enabled bool   `json:"enabled"`
+	Fixed   bool   `json:"fixed"`
+}
+
+type EthtoolRingInfo struct {
+	RxMaxPending      uint32 `json:"rx_max_pending"`
+	RxMiniMaxPending  uint32 `json:"rx_mini_max_pending"`
+	RxJumboMaxPending uint32 `json:"rx_jumbo_max_pending"`
+	TxMaxPending      uint32 `json:"tx_max_pending"`
+	RxPending         uint32 `json:"rx_pending"`
+	RxMiniPending     uint32 `json:"rx_mini_pending"`
+	RxJumboPending    uint32 `json:"rx_jumbo_pending"`
+	TxPending         uint32 `json:"tx_pending"`
+}
+
+type EthtoolChannelInfo struct {
+	MaxRx         uint32 `json:"max_rx"`
+	MaxTx         uint32 `json:"max_tx"`
+	MaxOther      uint32 `json:"max_other"`
+	MaxCombined   uint32 `json:"max_combined"`
+	RxCount       uint32 `json:"rx_count"`
+	TxCount       uint32 `json:"tx_count"`
+	OtherCount    uint32 `json:"other_count"`
+	CombinedCount uint32 `json:"combined_count"`
+}
+
+type EthtoolInfo struct {
+	Features []EthtoolFeature   `json:"features"`
+	Ring     EthtoolRingInfo    `json:"ring"`
+	Channels EthtoolChannelInfo `json:"channels"`
 }
 
 // OutputFormat defines the output format
@@ -45,9 +80,11 @@ const (
 func main() {
 	// Parse command line flags
 	var (
-		format  = flag.String("format", "table", "Output format: table, json, simple")
-		server  = flag.String("server", "localhost:50051", "gRPC server address")
-		timeout = flag.Duration("timeout", 5*time.Second, "Connection timeout")
+		format     = flag.String("format", "table", "Output format: table, json, simple")
+		server     = flag.String("server", "localhost:50051", "gRPC server address")
+		timeout    = flag.Duration("timeout", 5*time.Second, "Connection timeout")
+		deviceName = flag.String("device-name", "", "Filter by device name (exact match)")
+		refresh    = flag.Bool("refresh", false, "Trigger manual refresh of device list")
 	)
 	flag.Parse()
 
@@ -60,27 +97,46 @@ func main() {
 		log.Fatalf("❌ Invalid format: %s. Use: table, json, or simple", *format)
 	}
 
-	log.Printf("🔌 Connecting to SR-IOV server at %s...", *server)
+	log.Printf("Connecting to SR-IOV server at %s...", *server)
 	conn, err := grpc.Dial(*server, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
-		log.Fatalf("❌ Failed to connect: %v", err)
+		log.Fatalf("Error: Failed to connect: %v", err)
 	}
 	defer conn.Close()
 
-	log.Printf("✅ Connected successfully")
+	log.Printf("Connected successfully")
 
 	c := pb.NewSRIOVManagerClient(conn)
+
+	// Handle refresh command
+	if *refresh {
+		log.Printf("Triggering manual refresh...")
+		ctx, cancel := context.WithTimeout(context.Background(), *timeout)
+		defer cancel()
+
+		resp, err := c.RefreshDevices(ctx, &pb.RefreshDevicesRequest{})
+		if err != nil {
+			log.Fatalf("Error: Failed to refresh devices: %v", err)
+		}
+
+		if resp.Success {
+			log.Printf("Success: %s", resp.Message)
+		} else {
+			log.Printf("Error: Refresh failed: %s", resp.Message)
+		}
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), *timeout)
 	defer cancel()
 
-	log.Printf("📋 Requesting device list...")
+	log.Printf("Requesting device list...")
 	r, err := c.ListDevices(ctx, &pb.ListDevicesRequest{})
 	if err != nil {
-		log.Fatalf("❌ Could not list devices: %v", err)
+		log.Fatalf("Error: Could not list devices: %v", err)
 	}
 
-	log.Printf("✅ Received %d devices", len(r.Devices))
+	log.Printf("Received %d devices", len(r.Devices))
 
 	// Convert to DeviceInfo for consistent formatting
 	devices := make([]DeviceInfo, len(r.Devices))
@@ -108,7 +164,68 @@ func main() {
 			}
 		}
 
+		// Add ethtool information
+		if d.EthtoolInfo != nil {
+			ethtoolInfo := &EthtoolInfo{}
+
+			// Convert features
+			for _, feature := range d.EthtoolInfo.Features {
+				ethtoolInfo.Features = append(ethtoolInfo.Features, EthtoolFeature{
+					Name:    feature.Name,
+					Enabled: feature.Enabled,
+					Fixed:   feature.Fixed,
+				})
+			}
+
+			// Convert ring info
+			if d.EthtoolInfo.Ring != nil {
+				ethtoolInfo.Ring = EthtoolRingInfo{
+					RxMaxPending:      d.EthtoolInfo.Ring.RxMaxPending,
+					RxMiniMaxPending:  d.EthtoolInfo.Ring.RxMiniMaxPending,
+					RxJumboMaxPending: d.EthtoolInfo.Ring.RxJumboMaxPending,
+					TxMaxPending:      d.EthtoolInfo.Ring.TxMaxPending,
+					RxPending:         d.EthtoolInfo.Ring.RxPending,
+					RxMiniPending:     d.EthtoolInfo.Ring.RxMiniPending,
+					RxJumboPending:    d.EthtoolInfo.Ring.RxJumboPending,
+					TxPending:         d.EthtoolInfo.Ring.TxPending,
+				}
+			}
+
+			// Convert channel info
+			if d.EthtoolInfo.Channels != nil {
+				ethtoolInfo.Channels = EthtoolChannelInfo{
+					MaxRx:         d.EthtoolInfo.Channels.MaxRx,
+					MaxTx:         d.EthtoolInfo.Channels.MaxTx,
+					MaxOther:      d.EthtoolInfo.Channels.MaxOther,
+					MaxCombined:   d.EthtoolInfo.Channels.MaxCombined,
+					RxCount:       d.EthtoolInfo.Channels.RxCount,
+					TxCount:       d.EthtoolInfo.Channels.TxCount,
+					OtherCount:    d.EthtoolInfo.Channels.OtherCount,
+					CombinedCount: d.EthtoolInfo.Channels.CombinedCount,
+				}
+			}
+
+			deviceInfo.EthtoolInfo = ethtoolInfo
+		}
+
 		devices[i] = deviceInfo
+	}
+
+	// Filter by device name if specified
+	if *deviceName != "" {
+		var filteredDevices []DeviceInfo
+		for _, device := range devices {
+			if device.Name == *deviceName {
+				filteredDevices = append(filteredDevices, device)
+			}
+		}
+		devices = filteredDevices
+
+		if len(devices) == 0 {
+			log.Printf("Warning: No devices found with name: %s", *deviceName)
+			return
+		}
+		log.Printf("Found %d device(s) matching name: %s", len(devices), *deviceName)
 	}
 
 	// Output based on format

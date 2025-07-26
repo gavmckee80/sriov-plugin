@@ -47,6 +47,8 @@ type Device struct {
 	Configuration map[string]interface{}
 	// Detailed PCI capabilities
 	DetailedCapabilities map[string]DetailedCapability
+	// Ethtool information
+	EthtoolInfo *EthtoolInfo
 }
 
 // GetDetailedCapabilities returns formatted detailed capability information
@@ -184,5 +186,29 @@ func AttachPciInfo(devices []Device) ([]Device, error) {
 			devices[i] = dev
 		}
 	}
+	return devices, nil
+}
+
+// AttachEthtoolInfo enriches device information with ethtool details
+func AttachEthtoolInfo(devices []Device) ([]Device, error) {
+	fmt.Printf("AttachEthtoolInfo: processing %d devices\n", len(devices))
+
+	for i := range devices {
+		// Only get ethtool info for devices with a logical name (network interfaces)
+		if devices[i].LogicalName != "" {
+			fmt.Printf("Processing device %d: LogicalName=%s, Name=%s\n", i, devices[i].LogicalName, devices[i].Name)
+			ethtoolInfo, err := GetEthtoolInfo(devices[i].LogicalName)
+			if err != nil {
+				// Log error but continue with other devices
+				fmt.Printf("Warning: failed to get ethtool info for %s: %v\n", devices[i].LogicalName, err)
+				continue
+			}
+			devices[i].EthtoolInfo = ethtoolInfo
+			fmt.Printf("Successfully added ethtool info for %s\n", devices[i].LogicalName)
+		} else {
+			fmt.Printf("Skipping device %d: no logical name\n", i)
+		}
+	}
+
 	return devices, nil
 }
