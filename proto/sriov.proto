@@ -57,6 +57,9 @@ message Device {
   bool sriov_capable = 6;
   map<string, DetailedCapability> detailed_capabilities = 7;
   EthtoolInfo ethtool_info = 8;
+  // NUMA topology information
+  int32 numa_node = 9;
+  map<int32, int32> numa_distance = 10;
 }
 
 message ListDevicesRequest {}

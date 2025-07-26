@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -25,29 +24,29 @@ func main() {
 
 	// Show version
 	if *version {
-		fmt.Println("SR-IOV Manager v1.0.0")
+		pkg.Info("SR-IOV Manager v1.0.0")
 		return
 	}
 
 	// Create default config if requested
 	if *createConfig {
 		if err := createDefaultConfig(*configPath); err != nil {
-			log.Fatalf("Failed to create default config: %v", err)
+			pkg.WithError(err).Fatal("Failed to create default config")
 		}
-		fmt.Printf("Default configuration created at: %s\n", *configPath)
+		pkg.WithField("config_path", *configPath).Info("Default configuration created")
 		return
 	}
 
 	// Load configuration
 	config, err := pkg.LoadConfig(*configPath)
 	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
+		pkg.WithError(err).Fatal("Failed to load configuration")
 	}
 
 	// Set dry-run mode if requested
 	if *dryRun {
 		config.DryRun = true
-		log.Println("Running in dry-run mode")
+		pkg.Info("Running in dry-run mode")
 	}
 
 	// Create SR-IOV manager
@@ -56,9 +55,9 @@ func main() {
 	// Validate configuration if requested
 	if *validate {
 		if err := manager.ValidateConfiguration(); err != nil {
-			log.Fatalf("Configuration validation failed: %v", err)
+			pkg.WithError(err).Fatal("Configuration validation failed")
 		}
-		fmt.Println("Configuration validation passed")
+		pkg.Info("Configuration validation passed")
 		return
 	}
 
@@ -66,19 +65,23 @@ func main() {
 	if *discover {
 		devices, err := manager.DiscoverDevices()
 		if err != nil {
-			log.Fatalf("Device discovery failed: %v", err)
+			pkg.WithError(err).Fatal("Device discovery failed")
 		}
-		fmt.Printf("Discovered %d SR-IOV capable devices:\n", len(devices))
+		pkg.WithField("device_count", len(devices)).Info("Discovered SR-IOV capable devices")
 		for _, device := range devices {
-			fmt.Printf("  - %s (PCI: %s, Vendor: %s, Product: %s)\n",
-				device.Name, device.PCIAddress, device.Vendor, device.Product)
+			pkg.WithFields(map[string]interface{}{
+				"device":  device.Name,
+				"pci":     device.PCIAddress,
+				"vendor":  device.Vendor,
+				"product": device.Product,
+			}).Info("Found SR-IOV device")
 		}
 		return
 	}
 
 	// Run as a service
 	if err := runAsService(manager); err != nil {
-		log.Fatalf("Service failed: %v", err)
+		pkg.WithError(err).Fatal("Service failed")
 	}
 }
 
@@ -103,7 +106,7 @@ func createDefaultConfig(configPath string) error {
 
 // runAsService runs the SR-IOV manager as a systemd service
 func runAsService(manager *pkg.SRIOVManager) error {
-	log.Println("Starting SR-IOV Manager service...")
+	pkg.Info("Starting SR-IOV Manager service...")
 
 	// Set up signal handling for graceful shutdown
 	sigChan := make(chan os.Signal, 1)
@@ -112,13 +115,13 @@ func runAsService(manager *pkg.SRIOVManager) error {
 	// Run the manager
 	go func() {
 		if err := manager.Run(); err != nil {
-			log.Printf("SR-IOV Manager failed: %v", err)
+			pkg.WithError(err).Error("SR-IOV Manager failed")
 		}
 	}()
 
 	// Wait for shutdown signal
 	<-sigChan
-	log.Println("Shutting down SR-IOV Manager service...")
+	pkg.Info("Shutting down SR-IOV Manager service...")
 
 	return nil
 }

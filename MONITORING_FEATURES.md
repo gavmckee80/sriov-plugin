@@ -1,10 +1,10 @@
 # SR-IOV Device Monitoring System
 
-## 🎯 **Enhanced Monitoring Features**
+## **Enhanced Monitoring Features**
 
 This implementation provides comprehensive real-time monitoring for SR-IOV devices, specifically designed to handle dynamic environments with VFIO driver binding and VM passthrough scenarios.
 
-## 🔍 **What Gets Monitored**
+## **What Gets Monitored**
 
 ### **1. Network Interface Changes**
 - **Path**: `/sys/class/net/`
@@ -31,7 +31,7 @@ This implementation provides comprehensive real-time monitoring for SR-IOV devic
 - **Impact**: Detects SR-IOV configuration modifications
 - **Use Case**: Dynamic VF allocation for ROCE or high-performance networking
 
-## 🛠️ **Implementation Details**
+## **Implementation Details**
 
 ### **Real-time Event Processing**
 ```go
@@ -60,7 +60,7 @@ type server struct {
 - **Full refresh**: Complete device list regeneration
 - **Manual refresh**: API endpoint for forced updates
 
-## 🎯 **Perfect for Your Environment**
+## **Perfect for Your Environment**
 
 ### **Pensando VFs (ROCE)**
 - **Use Case**: RDMA over Converged Ethernet
@@ -77,24 +77,24 @@ type server struct {
 - **Monitoring**: VF count changes
 - **Detection**: Real-time VF creation/destruction
 
-## 📊 **Performance Characteristics**
+## **Performance Characteristics**
 
 ### **Fast Response Times**
-- ✅ **Cached data**: Sub-second response for queries
-- ✅ **Event-driven updates**: Only refresh when needed
-- ✅ **Thread-safe**: Concurrent access without blocking
+- **Cached data**: Sub-second response for queries
+- **Event-driven updates**: Only refresh when needed
+- **Thread-safe**: Concurrent access without blocking
 
 ### **Real-time Accuracy**
-- ✅ **Immediate detection**: Changes detected within seconds
-- ✅ **Comprehensive monitoring**: All relevant system paths watched
-- ✅ **Automatic recovery**: Failed monitors restart automatically
+- **Immediate detection**: Changes detected within seconds
+- **Comprehensive monitoring**: All relevant system paths watched
+- **Automatic recovery**: Failed monitors restart automatically
 
 ### **Resource Efficiency**
-- ✅ **Selective updates**: Only affected devices refreshed
-- ✅ **Memory efficient**: Cached data with automatic cleanup
-- ✅ **CPU friendly**: Event-driven vs polling
+- **Selective updates**: Only affected devices refreshed
+- **Memory efficient**: Cached data with automatic cleanup
+- **CPU friendly**: Event-driven vs polling
 
-## 🚀 **Usage Examples**
+## **Usage Examples**
 
 ### **Manual Refresh**
 ```bash
@@ -133,7 +133,7 @@ Read Request → RLock → Return Cached Data → RUnlock
 Write Event → WLock → Refresh Data → Update Cache → WUnlock
 ```
 
-## ✅ **Benefits for Your Use Case**
+## **Benefits for Your Use Case**
 
 ### **VFIO Binding Detection**
 - **Problem**: VFs disappear from network stack when bound to VFIO
@@ -150,7 +150,7 @@ Write Event → WLock → Refresh Data → Update Cache → WUnlock
 - **Solution**: Vendor-specific driver monitoring
 - **Result**: Support for Pensando, Mellanox, and other vendors
 
-## 🎉 **Summary**
+## **Summary**
 
 This enhanced monitoring system provides:
 

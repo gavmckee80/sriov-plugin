@@ -4,11 +4,11 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -47,7 +47,7 @@ type DeviceEvent struct {
 
 // StartDeviceMonitoring starts monitoring for device changes
 func (s *server) StartDeviceMonitoring() {
-	log.Printf("Starting device change monitoring...")
+	pkg.Info("Starting device change monitoring...")
 
 	// Initialize ethtool cache
 	s.ethtoolCache = make(map[string]*pkg.EthtoolInfo)
@@ -89,15 +89,15 @@ func (s *server) watchNetworkInterfaces() {
 				default:
 					// Use inotify to watch for interface changes
 					if err := s.monitorDirectory(watcher.path, "interface", watcher.events); err != nil {
-						log.Printf("Warning: Network interface monitoring error: %v", err)
+						pkg.WithError(err).Warn("Network interface monitoring error")
 						time.Sleep(5 * time.Second) // Retry after delay
 					}
 				}
 			}
 		}()
-		log.Printf("Network interface monitoring enabled")
+		pkg.Debug("Network interface monitoring enabled")
 	} else {
-		log.Printf("Network interface directory not available, skipping monitoring")
+		pkg.Debug("Network interface directory not available, skipping monitoring")
 	}
 }
 
@@ -118,15 +118,15 @@ func (s *server) watchPciDevices() {
 					return
 				default:
 					if err := s.monitorDirectory(watcher.path, "pci", watcher.events); err != nil {
-						log.Printf("Warning: PCI device monitoring error: %v", err)
+						pkg.WithError(err).Warn("PCI device monitoring error")
 						time.Sleep(5 * time.Second)
 					}
 				}
 			}
 		}()
-		log.Printf("PCI device monitoring enabled")
+		pkg.Debug("PCI device monitoring enabled")
 	} else {
-		log.Printf("PCI devices directory not available, skipping monitoring")
+		pkg.Debug("PCI devices directory not available, skipping monitoring")
 	}
 }
 
@@ -148,15 +148,15 @@ func (s *server) watchDriverBindings() {
 					return
 				default:
 					if err := s.monitorDirectory(vfioWatcher.path, "driver", vfioWatcher.events); err != nil {
-						log.Printf("Warning: VFIO driver monitoring error: %v", err)
+						pkg.WithError(err).Warn("VFIO driver monitoring error")
 						time.Sleep(5 * time.Second)
 					}
 				}
 			}
 		}()
-		log.Printf("VFIO driver monitoring enabled")
+		pkg.Debug("VFIO driver monitoring enabled")
 	} else {
-		log.Printf("VFIO driver not available, skipping monitoring")
+		pkg.Debug("VFIO driver not available, skipping monitoring")
 	}
 
 	// Monitor Mellanox driver (mlx5_core is the actual driver being used)
@@ -175,15 +175,15 @@ func (s *server) watchDriverBindings() {
 					return
 				default:
 					if err := s.monitorDirectory(mlxWatcher.path, "driver", mlxWatcher.events); err != nil {
-						log.Printf("Warning: Mellanox driver monitoring error: %v", err)
+						pkg.WithError(err).Warn("Mellanox driver monitoring error")
 						time.Sleep(5 * time.Second)
 					}
 				}
 			}
 		}()
-		log.Printf("Mellanox driver monitoring enabled")
+		pkg.Debug("Mellanox driver monitoring enabled")
 	} else {
-		log.Printf("Mellanox driver not available, skipping monitoring")
+		pkg.Debug("Mellanox driver not available, skipping monitoring")
 	}
 }
 
@@ -237,7 +237,7 @@ func (s *server) monitorDirectory(path, eventType string, events chan<- DeviceEv
 				}
 			}
 		case err := <-watcher.Errors:
-			log.Printf("fsnotify error for %s: %v", path, err)
+			pkg.WithField("path", path).WithError(err).Debug("fsnotify error")
 			return err
 		}
 	}
@@ -248,7 +248,11 @@ func (s *server) processDeviceEvents() {
 	for {
 		select {
 		case event := <-s.collectEvents():
-			log.Printf("Device change detected: %s %s %s", event.Type, event.Action, event.Device)
+			pkg.WithFields(map[string]interface{}{
+				"type":   event.Type,
+				"action": event.Action,
+				"device": event.Device,
+			}).Debug("Device change detected")
 			s.handleDeviceChange(event)
 		}
 	}
@@ -284,20 +288,20 @@ func (s *server) handleDeviceChange(event DeviceEvent) {
 // handleInterfaceChange handles network interface changes
 func (s *server) handleInterfaceChange(event DeviceEvent) {
 	if event.Action == "created" || event.Action == "deleted" {
-		log.Printf("Network interface %s %s, refreshing device list", event.Action, event.Device)
+		pkg.WithField("action", event.Action).WithField("device", event.Device).Debug("Network interface change, refreshing device list")
 		s.refreshDeviceList()
 	}
 }
 
 // handlePciChange handles PCI device changes
 func (s *server) handlePciChange(event DeviceEvent) {
-	log.Printf("PCI device %s %s, refreshing device list", event.Action, event.Device)
+	pkg.WithField("action", event.Action).WithField("device", event.Device).Debug("PCI device change, refreshing device list")
 	s.refreshDeviceList()
 }
 
 // handleDriverChange handles driver binding changes
 func (s *server) handleDriverChange(event DeviceEvent) {
-	log.Printf("Driver binding change: %s %s, refreshing device list", event.Action, event.Device)
+	pkg.WithField("action", event.Action).WithField("device", event.Device).Debug("Driver binding change, refreshing device list")
 	s.refreshDeviceList()
 }
 
@@ -305,13 +309,13 @@ func (s *server) handleDriverChange(event DeviceEvent) {
 func (s *server) checkSriovChanges() {
 	// This is a simplified check - in practice you'd want to cache previous values
 	// and compare to detect actual changes
-	log.Printf("Checking SR-IOV configurations...")
+	pkg.Debug("Checking SR-IOV configurations...")
 	// Implementation would check sriov_numvfs files for changes
 }
 
 // watchEthtoolChanges monitors ethtool parameters for changes
 func (s *server) watchEthtoolChanges() {
-	log.Printf("Starting ethtool parameter monitoring...")
+	pkg.Debug("Starting ethtool parameter monitoring...")
 
 	go func() {
 		ticker := time.NewTicker(15 * time.Second) // Check every 15 seconds
@@ -362,10 +366,13 @@ func (s *server) checkEthtoolChanges() {
 		if cachedEthtool.Ring.RxPending != currentEthtool.Ring.RxPending ||
 			cachedEthtool.Ring.TxPending != currentEthtool.Ring.TxPending {
 
-			log.Printf("Ethtool ring buffer change detected for %s: RX %d->%d, TX %d->%d",
-				device.LogicalName,
-				cachedEthtool.Ring.RxPending, currentEthtool.Ring.RxPending,
-				cachedEthtool.Ring.TxPending, currentEthtool.Ring.TxPending)
+			pkg.WithFields(map[string]interface{}{
+				"device": device.LogicalName,
+				"rx_old": cachedEthtool.Ring.RxPending,
+				"rx_new": currentEthtool.Ring.RxPending,
+				"tx_old": cachedEthtool.Ring.TxPending,
+				"tx_new": currentEthtool.Ring.TxPending,
+			}).Debug("Ethtool ring buffer change detected")
 
 			changed = true
 		}
@@ -375,11 +382,15 @@ func (s *server) checkEthtoolChanges() {
 			cachedEthtool.Channels.TxCount != currentEthtool.Channels.TxCount ||
 			cachedEthtool.Channels.CombinedCount != currentEthtool.Channels.CombinedCount {
 
-			log.Printf("Ethtool channel change detected for %s: RX %d->%d, TX %d->%d, Combined %d->%d",
-				device.LogicalName,
-				cachedEthtool.Channels.RxCount, currentEthtool.Channels.RxCount,
-				cachedEthtool.Channels.TxCount, currentEthtool.Channels.TxCount,
-				cachedEthtool.Channels.CombinedCount, currentEthtool.Channels.CombinedCount)
+			pkg.WithFields(map[string]interface{}{
+				"device":       device.LogicalName,
+				"rx_old":       cachedEthtool.Channels.RxCount,
+				"rx_new":       currentEthtool.Channels.RxCount,
+				"tx_old":       cachedEthtool.Channels.TxCount,
+				"tx_new":       currentEthtool.Channels.TxCount,
+				"combined_old": cachedEthtool.Channels.CombinedCount,
+				"combined_new": currentEthtool.Channels.CombinedCount,
+			}).Debug("Ethtool channel change detected")
 
 			changed = true
 		}
@@ -391,14 +402,14 @@ func (s *server) checkEthtoolChanges() {
 	}
 
 	if changed {
-		log.Printf("Ethtool changes detected, refreshing device list...")
+		pkg.Debug("Ethtool changes detected, refreshing device list...")
 		s.refreshDeviceList()
 	}
 }
 
 // refreshDeviceList refreshes the device list
 func (s *server) refreshDeviceList() {
-	log.Printf("Refreshing device list...")
+	pkg.Debug("Refreshing device list...")
 
 	s.devicesLock.Lock()
 	defer s.devicesLock.Unlock()
@@ -406,18 +417,18 @@ func (s *server) refreshDeviceList() {
 	// Re-collect all device information
 	devices, err := pkg.ParseLshwDynamic()
 	if err != nil {
-		log.Printf("Error: Failed to refresh devices: %v", err)
+		pkg.WithError(err).Error("Failed to refresh devices")
 		return
 	}
 
 	devices, err = pkg.AttachPciInfo(devices)
 	if err != nil {
-		log.Printf("Warning: Failed to refresh PCI info: %v", err)
+		pkg.WithError(err).Warn("Failed to refresh PCI info")
 	}
 
 	devices, err = pkg.AttachEthtoolInfo(devices)
 	if err != nil {
-		log.Printf("Warning: Failed to refresh ethtool info: %v", err)
+		pkg.WithError(err).Warn("Failed to refresh ethtool info")
 	}
 
 	s.devices = devices
@@ -432,14 +443,14 @@ func (s *server) refreshDeviceList() {
 	}
 	s.ethtoolLock.Unlock()
 
-	log.Printf("Device list refreshed: %d devices", len(devices))
+	pkg.WithField("device_count", len(devices)).Debug("Device list refreshed")
 }
 
 func (s *server) ListDevices(ctx context.Context, in *pb.ListDevicesRequest) (*pb.ListDevicesResponse, error) {
 	s.devicesLock.RLock()
 	defer s.devicesLock.RUnlock()
 
-	log.Printf("📋 ListDevices request received - returning %d devices", len(s.devices))
+	pkg.WithField("device_count", len(s.devices)).Info("ListDevices request received")
 	resp := &pb.ListDevicesResponse{}
 	for _, d := range s.devices {
 		device := &pb.Device{
@@ -449,6 +460,14 @@ func (s *server) ListDevices(ctx context.Context, in *pb.ListDevicesRequest) (*p
 			Vendor:       d.Vendor,
 			Product:      d.Product,
 			SriovCapable: d.SRIOVCapable,
+			// Add NUMA topology information
+			NumaNode:     int32(d.NUMANode),
+			NumaDistance: make(map[int32]int32),
+		}
+
+		// Add NUMA distance information
+		for node, distance := range d.NUMADistance {
+			device.NumaDistance[int32(node)] = int32(distance)
 		}
 
 		// Add detailed capabilities
@@ -468,7 +487,7 @@ func (s *server) ListDevices(ctx context.Context, in *pb.ListDevicesRequest) (*p
 
 		// Add ethtool information
 		if d.EthtoolInfo != nil {
-			fmt.Printf("DEBUG: Adding ethtool info for device %s\n", d.Name)
+			pkg.WithField("device", d.Name).Debug("Adding ethtool info for device")
 			ethtoolInfo := &pb.EthtoolInfo{}
 
 			// Add features
@@ -493,8 +512,11 @@ func (s *server) ListDevices(ctx context.Context, in *pb.ListDevicesRequest) (*p
 			}
 
 			// Debug: print ring values
-			fmt.Printf("DEBUG: Ring values - RxPending: %d, TxPending: %d\n",
-				ethtoolInfo.Ring.RxPending, ethtoolInfo.Ring.TxPending)
+			pkg.WithFields(map[string]interface{}{
+				"device":     d.Name,
+				"rx_pending": ethtoolInfo.Ring.RxPending,
+				"tx_pending": ethtoolInfo.Ring.TxPending,
+			}).Debug("Ring values for device")
 
 			// Add channel information
 			ethtoolInfo.Channels = &pb.EthtoolChannelInfo{
@@ -509,10 +531,13 @@ func (s *server) ListDevices(ctx context.Context, in *pb.ListDevicesRequest) (*p
 			}
 
 			device.EthtoolInfo = ethtoolInfo
-			fmt.Printf("DEBUG: Successfully set ethtool info for device %s with %d features\n", d.Name, len(ethtoolInfo.Features))
-			fmt.Printf("DEBUG: Device.EthtoolInfo is nil: %t\n", device.EthtoolInfo == nil)
+			pkg.WithFields(map[string]interface{}{
+				"device":        d.Name,
+				"feature_count": len(ethtoolInfo.Features),
+				"is_nil":        device.EthtoolInfo == nil,
+			}).Debug("Successfully set ethtool info for device")
 		} else {
-			fmt.Printf("DEBUG: No ethtool info for device %s\n", d.Name)
+			pkg.WithField("device", d.Name).Debug("No ethtool info for device")
 		}
 
 		resp.Devices = append(resp.Devices, device)
@@ -522,7 +547,7 @@ func (s *server) ListDevices(ctx context.Context, in *pb.ListDevicesRequest) (*p
 
 // RefreshDevices manually refreshes the device list
 func (s *server) RefreshDevices(ctx context.Context, in *pb.RefreshDevicesRequest) (*pb.RefreshDevicesResponse, error) {
-	log.Printf("Manual refresh requested")
+	pkg.Info("Manual refresh requested")
 
 	s.refreshDeviceList()
 
@@ -539,79 +564,100 @@ func (s *server) RefreshDevices(ctx context.Context, in *pb.RefreshDevicesReques
 
 // debugPrintDeviceInfo prints detailed device information for debugging
 func debugPrintDeviceInfo(devices []pkg.Device) {
-	log.Printf("Device Information Collection Summary:")
-	log.Printf("   Total devices found: %d", len(devices))
+	pkg.WithField("total_devices", len(devices)).Debug("Device Information Collection Summary")
 
 	sriovCount := 0
 	networkCount := 0
 
 	for i, device := range devices {
-		log.Printf("   Device %d:", i+1)
-		log.Printf("     PCI Address: %s", device.PCIAddress)
-		log.Printf("     Name: %s", device.Name)
-		log.Printf("     Driver: %s", device.Driver)
-		log.Printf("     Vendor: %s", device.Vendor)
-		log.Printf("     Product: %s", device.Product)
-		log.Printf("     SR-IOV Capable: %t", device.SRIOVCapable)
+		// Show progress for network devices during discovery
+		if device.Name != "" {
+			pkg.WithFields(map[string]interface{}{
+				"device_index": i + 1,
+				"name":         device.Name,
+				"pci":          device.PCIAddress,
+				"vendor":       device.Vendor,
+				"product":      device.Product,
+				"sriov":        device.SRIOVCapable,
+			}).Debug("Processing network device")
+		}
 
-		// Enhanced context information
+		// Enhanced context information (debug only)
 		if device.Description != "" {
-			log.Printf("     Description: %s", device.Description)
+			pkg.WithField("description", device.Description).Debug("Device description")
 		}
 		if device.Serial != "" {
-			log.Printf("     Serial: %s", device.Serial)
+			pkg.WithField("serial", device.Serial).Debug("Device serial")
 		}
 		if device.Size != "" {
-			log.Printf("     Size: %s", device.Size)
+			pkg.WithField("size", device.Size).Debug("Device size")
 		}
 		if device.Capacity != "" {
-			log.Printf("     Capacity: %s", device.Capacity)
+			pkg.WithField("capacity", device.Capacity).Debug("Device capacity")
 		}
 		if device.Clock != "" {
-			log.Printf("     Clock: %s", device.Clock)
+			pkg.WithField("clock", device.Clock).Debug("Device clock")
 		}
 		if device.Width != "" {
-			log.Printf("     Width: %s", device.Width)
+			pkg.WithField("width", device.Width).Debug("Device width")
 		}
 		if device.Class != "" {
-			log.Printf("     Class: %s", device.Class)
+			pkg.WithField("class", device.Class).Debug("Device class")
 		}
 		if device.SubClass != "" {
-			log.Printf("     SubClass: %s", device.SubClass)
+			pkg.WithField("subclass", device.SubClass).Debug("Device subclass")
 		}
 		if len(device.Capabilities) > 0 {
-			log.Printf("     Capabilities: %v", device.Capabilities)
+			pkg.WithField("capabilities", device.Capabilities).Debug("Device capabilities")
 		}
 
-		// Detailed capability information
+		// NUMA topology information (debug only)
+		if device.NUMANode != -1 {
+			pkg.WithField("numa_node", device.NUMANode).Debug("Device NUMA node")
+			if len(device.NUMADistance) > 0 {
+				var distances []string
+				for node, distance := range device.NUMADistance {
+					distances = append(distances, fmt.Sprintf("Node %d: %d", node, distance))
+				}
+				pkg.WithField("numa_distances", strings.Join(distances, ", ")).Debug("Device NUMA distances")
+			}
+		} else {
+			pkg.Debug("Device has no NUMA affinity")
+		}
+
+		// Detailed capability information (debug only)
 		if len(device.DetailedCapabilities) > 0 {
-			log.Printf("     Detailed Capabilities:")
+			pkg.Debug("Device detailed capabilities:")
 			for capName, cap := range device.DetailedCapabilities {
-				log.Printf("       [%s] %s: %s", cap.ID, capName, cap.Description)
+				pkg.WithFields(map[string]interface{}{
+					"capability_id":   cap.ID,
+					"capability_name": capName,
+					"description":     cap.Description,
+				}).Debug("Device capability")
 			}
 		}
 
 		if device.SRIOVCapable && device.SRIOVInfo != nil {
 			sriovCount++
-			log.Printf("     SR-IOV Details:")
-			log.Printf("       Total VFs: %d", device.SRIOVInfo.TotalVFs)
-			log.Printf("       Number of VFs: %d", device.SRIOVInfo.NumberOfVFs)
-			log.Printf("       VF Offset: %d", device.SRIOVInfo.VFOffset)
-			log.Printf("       VF Stride: %d", device.SRIOVInfo.VFStride)
-			log.Printf("       VF Device ID: %s", device.SRIOVInfo.VFDeviceID)
+			pkg.WithFields(map[string]interface{}{
+				"total_vfs":     device.SRIOVInfo.TotalVFs,
+				"number_of_vfs": device.SRIOVInfo.NumberOfVFs,
+				"vf_offset":     device.SRIOVInfo.VFOffset,
+				"vf_stride":     device.SRIOVInfo.VFStride,
+				"vf_device_id":  device.SRIOVInfo.VFDeviceID,
+			}).Debug("Device SR-IOV details")
 		}
 
 		if device.Name != "" {
 			networkCount++
 		}
-
-		log.Printf("")
 	}
 
-	log.Printf("📊 Summary Statistics:")
-	log.Printf("   Network devices: %d", networkCount)
-	log.Printf("   SR-IOV capable devices: %d", sriovCount)
-	log.Printf("   Non-SR-IOV devices: %d", len(devices)-sriovCount)
+	pkg.WithFields(map[string]interface{}{
+		"network_devices":   networkCount,
+		"sriov_devices":     sriovCount,
+		"non_sriov_devices": len(devices) - sriovCount,
+	}).Debug("Device discovery summary")
 }
 
 func main() {
@@ -619,63 +665,71 @@ func main() {
 	var (
 		useFile  = flag.Bool("file", false, "Use static lshw file for testing (default: dynamic lshw)")
 		lshwFile = flag.String("lshw-file", "lshw-network.json", "Path to lshw JSON file (when using -file)")
+		debug    = flag.Bool("debug", false, "Enable debug logging")
 	)
 	flag.Parse()
 
+	// Configure logging level based on debug flag
+	if *debug {
+		pkg.SetLogLevelFromString("debug")
+	} else {
+		pkg.SetLogLevelFromString("info")
+	}
+
 	startTime := time.Now()
-	log.Printf("Starting SR-IOV Manager Server...")
+	pkg.Info("Starting SR-IOV Manager Server...")
 
 	var devices []pkg.Device
 	var err error
 
 	if *useFile {
 		// Development/Testing mode: Use static file
-		log.Printf("Development mode: Parsing lshw data from file: %s", *lshwFile)
+		pkg.WithField("file", *lshwFile).Info("Development mode: Parsing lshw data from file")
 		if _, err := os.Stat(*lshwFile); os.IsNotExist(err) {
-			log.Printf("Warning: %s not found, using empty device list", *lshwFile)
+			pkg.WithField("file", *lshwFile).Warn("File not found, using empty device list")
 			devices = []pkg.Device{}
 		} else {
 			devices, err = pkg.ParseLshwFromFile(*lshwFile)
 			if err != nil {
-				log.Printf("Error: Failed to parse lshw file: %v", err)
-				log.Printf("Falling back to empty device list...")
+				pkg.WithField("file", *lshwFile).WithError(err).Error("Failed to parse lshw file")
+				pkg.Info("Falling back to empty device list...")
 				devices = []pkg.Device{}
 			} else {
-				log.Printf("Successfully parsed %d devices from lshw file", len(devices))
+				pkg.WithField("count", len(devices)).Info("Successfully parsed devices from lshw file")
 			}
 		}
 	} else {
 		// Production mode: Run lshw dynamically
-		log.Printf("Production mode: Running lshw -class network -json dynamically")
+		pkg.Info("Production mode: Running lshw -class network -json dynamically")
 		lshwStart := time.Now()
 		devices, err = pkg.ParseLshwDynamic()
 		if err != nil {
-			log.Printf("Error: Failed to run lshw: %v", err)
-			log.Printf("Falling back to empty device list...")
+			pkg.WithError(err).Error("Failed to run lshw")
+			pkg.Info("Falling back to empty device list...")
 			devices = []pkg.Device{}
 		} else {
-			log.Printf("Successfully gathered %d devices from lshw in %v", len(devices), time.Since(lshwStart))
+			pkg.WithField("count", len(devices)).WithField("duration", time.Since(lshwStart)).Info("Successfully gathered devices from lshw")
 		}
 	}
 
-	log.Printf("Enriching devices with PCI information...")
+	pkg.Info("Enriching devices with PCI information...")
 	enrichStart := time.Now()
 	devices, err = pkg.AttachPciInfo(devices)
 	if err != nil {
-		log.Printf("Warning: failed to enrich devices with PCI info: %v", err)
-		log.Printf("   Continuing with basic device information...")
+		pkg.WithError(err).Warn("Failed to enrich devices with PCI info")
+		pkg.Info("Continuing with basic device information...")
 	} else {
-		log.Printf("PCI enrichment completed in %v", time.Since(enrichStart))
+		pkg.WithField("duration", time.Since(enrichStart)).Info("PCI enrichment completed")
 	}
 
-	log.Printf("Enriching devices with ethtool information...")
+	pkg.Info("Enriching devices with ethtool information...")
 	ethtoolStart := time.Now()
 	devices, err = pkg.AttachEthtoolInfo(devices)
 	if err != nil {
-		log.Printf("Warning: failed to enrich devices with ethtool info: %v", err)
-		log.Printf("   Continuing without ethtool information...")
+		pkg.WithError(err).Warn("Failed to enrich devices with ethtool info")
+		pkg.Info("Continuing without ethtool information...")
 	} else {
-		log.Printf("Ethtool enrichment completed in %v", time.Since(ethtoolStart))
+		pkg.WithField("duration", time.Since(ethtoolStart)).Info("Ethtool enrichment completed")
 		// Debug: count devices with ethtool info
 		ethtoolCount := 0
 		for _, d := range devices {
@@ -683,16 +737,18 @@ func main() {
 				ethtoolCount++
 			}
 		}
-		log.Printf("Devices with ethtool info: %d/%d", ethtoolCount, len(devices))
+		pkg.WithField("ethtool_count", ethtoolCount).WithField("total_count", len(devices)).Debug("Devices with ethtool info")
 	}
 
-	// Print detailed device information for debugging
-	debugPrintDeviceInfo(devices)
+	// Print detailed device information for debugging (only in debug mode)
+	if *debug {
+		debugPrintDeviceInfo(devices)
+	}
 
-	log.Printf("Starting gRPC server...")
+	pkg.Info("Starting gRPC server...")
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
-		log.Fatalf("Error: Failed to listen: %v", err)
+		pkg.WithError(err).Fatal("Failed to listen")
 	}
 
 	grpcServer := grpc.NewServer()
@@ -700,9 +756,9 @@ func main() {
 	pb.RegisterSRIOVManagerServer(grpcServer, srv)
 
 	totalStartupTime := time.Since(startTime)
-	log.Printf("SR-IOV manager gRPC server ready on :50051")
-	log.Printf("Total startup time: %v", totalStartupTime)
-	log.Printf("Server is ready to accept connections...")
+	pkg.WithField("port", ":50051").Info("SR-IOV manager gRPC server ready")
+	pkg.WithField("startup_time", totalStartupTime).Info("Server startup completed")
+	pkg.Info("Server is ready to accept connections...")
 
 	// Start monitoring
 	srv.StartDeviceMonitoring()
@@ -710,7 +766,7 @@ func main() {
 	// Start gRPC server in a goroutine
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("Error: Failed to serve: %v", err)
+			pkg.WithError(err).Fatal("Failed to serve")
 		}
 	}()
 
@@ -718,7 +774,7 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Printf("Shutting down SR-IOV Manager Server...")
+	pkg.Info("Shutting down SR-IOV Manager Server...")
 
 	// Clean up watchers
 	for _, watcher := range srv.watchers {
@@ -727,5 +783,5 @@ func main() {
 
 	// Graceful shutdown of gRPC server
 	grpcServer.GracefulStop()
-	log.Printf("Server shutdown complete")
+	pkg.Info("Server shutdown complete")
 }

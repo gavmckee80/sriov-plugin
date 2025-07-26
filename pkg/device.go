@@ -49,6 +49,9 @@ type Device struct {
 	DetailedCapabilities map[string]DetailedCapability
 	// Ethtool information
 	EthtoolInfo *EthtoolInfo
+	// NUMA topology information
+	NUMANode     int
+	NUMADistance map[int]int // Distance to other NUMA nodes
 }
 
 // GetDetailedCapabilities returns formatted detailed capability information
@@ -70,6 +73,49 @@ func (d *Device) GetCapabilityInfo(capabilityName string) *DetailedCapability {
 		return &cap
 	}
 	return nil
+}
+
+// GetNUMANode returns the NUMA node this device belongs to
+func (d *Device) GetNUMANode() int {
+	return d.NUMANode
+}
+
+// GetNUMADistance returns the distance to a specific NUMA node
+func (d *Device) GetNUMADistance(node int) (int, bool) {
+	if d.NUMADistance == nil {
+		return -1, false
+	}
+	distance, exists := d.NUMADistance[node]
+	return distance, exists
+}
+
+// IsNUMALocal returns true if the device is on the local NUMA node (distance 10)
+func (d *Device) IsNUMALocal() bool {
+	if d.NUMADistance == nil {
+		return false
+	}
+	distance, exists := d.NUMADistance[d.NUMANode]
+	return exists && distance == 10
+}
+
+// GetNUMATopologyInfo returns formatted NUMA topology information
+func (d *Device) GetNUMATopologyInfo() string {
+	if d.NUMANode == -1 {
+		return "No NUMA affinity"
+	}
+
+	var info []string
+	info = append(info, fmt.Sprintf("NUMA Node: %d", d.NUMANode))
+
+	if d.NUMADistance != nil && len(d.NUMADistance) > 0 {
+		var distances []string
+		for node, distance := range d.NUMADistance {
+			distances = append(distances, fmt.Sprintf("Node %d: %d", node, distance))
+		}
+		info = append(info, fmt.Sprintf("NUMA Distances: %s", strings.Join(distances, ", ")))
+	}
+
+	return strings.Join(info, " | ")
 }
 
 // ParseLshwFromFile parses a lshw -class network -json output file
@@ -183,6 +229,9 @@ func AttachPciInfo(devices []Device) ([]Device, error) {
 			dev.SRIOVInfo = p.SRIOVInfo
 			// Add detailed capabilities
 			dev.DetailedCapabilities = p.DetailedCapabilities
+			// Add NUMA topology information
+			dev.NUMANode = p.NUMANode
+			dev.NUMADistance = p.NUMADistance
 			devices[i] = dev
 		}
 	}
@@ -191,27 +240,27 @@ func AttachPciInfo(devices []Device) ([]Device, error) {
 
 // AttachEthtoolInfo enriches device information with ethtool details
 func AttachEthtoolInfo(devices []Device) ([]Device, error) {
-	fmt.Printf("AttachEthtoolInfo: processing %d devices\n", len(devices))
+	Debug("Processing %d devices for ethtool information", len(devices))
 
 	for i := range devices {
 		// Only get ethtool info for devices with a logical name (network interfaces)
 		if devices[i].LogicalName != "" {
 			// Skip USB devices and other non-Ethernet interfaces
 			if isEthernetInterface(devices[i].LogicalName, devices[i].Class, devices[i].SubClass) {
-				fmt.Printf("Processing device %d: LogicalName=%s, Name=%s\n", i, devices[i].LogicalName, devices[i].Name)
+				Debug("Processing device %d: LogicalName=%s, Name=%s", i, devices[i].LogicalName, devices[i].Name)
 				ethtoolInfo, err := GetEthtoolInfo(devices[i].LogicalName)
 				if err != nil {
 					// Log error but continue with other devices
-					fmt.Printf("Warning: failed to get ethtool info for %s: %v\n", devices[i].LogicalName, err)
+					WithField("device", devices[i].LogicalName).WithError(err).Warn("Failed to get ethtool info")
 					continue
 				}
 				devices[i].EthtoolInfo = ethtoolInfo
-				fmt.Printf("Successfully added ethtool info for %s\n", devices[i].LogicalName)
+				Debug("Successfully added ethtool info for %s", devices[i].LogicalName)
 			} else {
-				fmt.Printf("Skipping non-Ethernet device %d: LogicalName=%s, Class=%s, SubClass=%s\n", i, devices[i].LogicalName, devices[i].Class, devices[i].SubClass)
+				Debug("Skipping non-Ethernet device %d: LogicalName=%s, Class=%s, SubClass=%s", i, devices[i].LogicalName, devices[i].Class, devices[i].SubClass)
 			}
 		} else {
-			fmt.Printf("Skipping device %d: no logical name\n", i)
+			Debug("Skipping device %d: no logical name", i)
 		}
 	}
 

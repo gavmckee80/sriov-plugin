@@ -6,7 +6,7 @@ The SR-IOV Manager is a systemd service that automatically configures SR-IOV (Si
 
 ## Features
 
-### 🎯 **Core Functionality**
+### **Core Functionality**
 - **Automatic Device Discovery**: Discovers all SR-IOV capable devices using `lshw`
 - **Policy-Based Configuration**: Applies device-specific policies based on vendor/device IDs
 - **Switchdev Mode Support**: Enables switchdev mode for Mellanox ConnectX-7 devices
@@ -19,7 +19,7 @@ The SR-IOV Manager is a systemd service that automatically configures SR-IOV (Si
 - **Intel I350**: General-purpose networking devices
 - **Virtual Functions**: Automatic VF creation and management
 
-### 📋 **Configuration Modes**
+### **Configuration Modes**
 - **Single-Home Mode**: Standard SR-IOV configuration
 - **VF-LAG Mode**: Bond multiple interfaces for redundancy/performance
 

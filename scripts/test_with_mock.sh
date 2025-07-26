@@ -86,7 +86,7 @@ cat > mock-lshw.json << 'EOF'
 EOF
 
 # Test the server with mock data
-echo "🚀 Starting server with mock data..."
+echo "Starting server with mock data..."
 ./server &
 SERVER_PID=$!
 
@@ -94,19 +94,19 @@ SERVER_PID=$!
 sleep 2
 
 # Test the client
-echo "🔍 Testing client with mock data..."
+echo "Testing client with mock data..."
 ./client
 
 # Clean up
-echo "🧹 Cleaning up..."
+echo "Cleaning up..."
 kill $SERVER_PID
 rm -f mock-lshw.json
 
-echo "✅ Mock testing completed successfully!"
+echo "Mock testing completed successfully!"
 echo ""
-echo "📋 Summary:"
-echo "- Unit tests with mock data: ✅"
-echo "- Server tests with mock data: ✅"
-echo "- End-to-end test with mock data: ✅"
+echo "Summary:"
+echo "- Unit tests with mock data: PASS"
+echo "- Server tests with mock data: PASS"
+echo "- End-to-end test with mock data: PASS"
 echo ""
-echo "🎯 You can now develop and test the SR-IOV plugin without requiring actual hardware!" 
+echo "You can now develop and test the SR-IOV plugin without requiring actual hardware!" 

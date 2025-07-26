@@ -21,9 +21,7 @@ func TestNewSRIOVManager(t *testing.T) {
 	if manager.config != config {
 		t.Error("Expected config to be set")
 	}
-	if manager.logger == nil {
-		t.Error("Expected logger to be initialized")
-	}
+	// Logger is now handled by the global logging system, no need to check manager.logger
 }
 
 // TestExtractDeviceIDs tests device ID extraction

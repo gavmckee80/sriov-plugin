@@ -18,7 +18,7 @@ This document compares the two approaches for PCI device discovery in the SR-IOV
 
 ## Detailed Comparison
 
-### 🚀 **Performance**
+### **Performance**
 
 | Aspect | Sysfs | lspci |
 |--------|-------|-------|
@@ -36,19 +36,19 @@ This document compares the two approaches for PCI device discovery in the SR-IOV
 | **Error Handling** | ⭐⭐⭐⭐⭐ Robust | ⭐⭐ Fragile |
 | **Dependencies** | ⭐⭐⭐⭐⭐ None | ⭐⭐ Requires lspci |
 
-### 📊 **Information Access**
+### **Information Access**
 
 | Information | Sysfs | lspci |
 |-------------|-------|-------|
-| **Vendor/Device IDs** | ✅ Direct access | ✅ Parsed from text |
-| **Class Codes** | ✅ Direct access | ✅ Parsed from text |
-| **Driver Information** | ✅ Direct symlink | ✅ Parsed from text |
-| **SR-IOV Capabilities** | ✅ Direct sysfs files | ⚠️ Limited parsing |
-| **PCI Capabilities** | ✅ Direct access | ⚠️ Text parsing only |
-| **Configuration Space** | ✅ Direct access | ❌ Not available |
-| **Real-time Status** | ✅ Always current | ⚠️ Command execution delay |
+| **Vendor/Device IDs** | **Direct access** | **Parsed from text** |
+| **Class Codes** | **Direct access** | **Parsed from text** |
+| **Driver Information** | **Direct symlink** | **Parsed from text** |
+| **SR-IOV Capabilities** | **Direct sysfs files** | **Limited parsing** |
+| **PCI Capabilities** | **Direct access** | **Text parsing only** |
+| **Configuration Space** | **Direct access** | **Not available** |
+| **Real-time Status** | **Always current** | **Command execution delay** |
 
-### 🛠️ **Implementation Complexity**
+### **Implementation Complexity**
 
 | Aspect | Sysfs | lspci |
 |--------|-------|-------|
@@ -153,7 +153,7 @@ if strings.Contains(line, "Initial VFs:") {
 
 ## Migration Benefits
 
-### ✅ **Advantages of Sysfs Migration**
+### **Advantages of Sysfs Migration**
 
 1. **Performance**: 10-50x faster device discovery
 2. **Reliability**: No dependency on external tools
@@ -216,7 +216,7 @@ for _, device := range devices {
 
 The **sysfs approach is significantly superior** to lspci text scraping for PCI device discovery:
 
-### 🎯 **Recommendation**
+### **Recommendation**
 - **Use sysfs as the primary method** for production deployments
 - **Keep lspci as fallback** for development/testing environments
 - **Migrate existing code** to use sysfs for better performance and reliability

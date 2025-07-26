@@ -6,47 +6,43 @@ import (
 	"strings"
 )
 
-
-
 // EthtoolFeatureInfo represents a single feature
 type EthtoolFeatureInfo struct {
-	Name   string
+	Name    string
 	Enabled bool
-	Fixed  bool
+	Fixed   bool
 }
 
 // EthtoolRingInfo represents ring parameters
 type EthtoolRingInfo struct {
-	RxMaxPending   uint32
-	RxMiniMaxPending uint32
+	RxMaxPending      uint32
+	RxMiniMaxPending  uint32
 	RxJumboMaxPending uint32
-	TxMaxPending   uint32
-	RxPending      uint32
-	RxMiniPending  uint32
-	RxJumboPending uint32
-	TxPending      uint32
+	TxMaxPending      uint32
+	RxPending         uint32
+	RxMiniPending     uint32
+	RxJumboPending    uint32
+	TxPending         uint32
 }
 
 // EthtoolChannelInfo represents channel parameters
 type EthtoolChannelInfo struct {
-	MaxRx          uint32
-	MaxTx          uint32
-	MaxOther       uint32
-	MaxCombined    uint32
-	RxCount        uint32
-	TxCount        uint32
-	OtherCount     uint32
-	CombinedCount  uint32
+	MaxRx         uint32
+	MaxTx         uint32
+	MaxOther      uint32
+	MaxCombined   uint32
+	RxCount       uint32
+	TxCount       uint32
+	OtherCount    uint32
+	CombinedCount uint32
 }
 
 // EthtoolInfo represents comprehensive ethtool information
 type EthtoolInfo struct {
-	Features  []EthtoolFeatureInfo
-	Ring      EthtoolRingInfo
-	Channels  EthtoolChannelInfo
+	Features []EthtoolFeatureInfo
+	Ring     EthtoolRingInfo
+	Channels EthtoolChannelInfo
 }
-
-
 
 // GetEthtoolInfo retrieves comprehensive ethtool information for a network interface
 func GetEthtoolInfo(ifname string) (*EthtoolInfo, error) {
@@ -104,7 +100,7 @@ func getEthtoolFeatures(ifname string) ([]EthtoolFeatureInfo, error) {
 
 		// Check if it's enabled
 		enabled := strings.Contains(value, "on")
-		
+
 		// Check if it's fixed
 		fixed := strings.Contains(value, "[fixed]")
 
@@ -260,15 +256,15 @@ func (info *EthtoolInfo) GetEthtoolFeaturesString() string {
 		if feature.Enabled {
 			status = "on"
 		}
-		
+
 		fixed := ""
 		if feature.Fixed {
 			fixed = " [fixed]"
 		}
-		
+
 		result += fmt.Sprintf("  %s: %s%s\n", feature.Name, status, fixed)
 	}
-	
+
 	return result
 }
 
@@ -333,4 +329,4 @@ func formatChannelValue(value uint32) string {
 		return "n/a"
 	}
 	return fmt.Sprintf("%d", value)
-} 
+}

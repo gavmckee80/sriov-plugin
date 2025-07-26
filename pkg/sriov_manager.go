@@ -2,31 +2,30 @@ package pkg
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 // SRIOVManager handles SR-IOV device configuration
 type SRIOVManager struct {
 	config *SRIOVConfig
-	logger *log.Logger
 }
 
 // NewSRIOVManager creates a new SR-IOV manager instance
 func NewSRIOVManager(config *SRIOVConfig) *SRIOVManager {
 	return &SRIOVManager{
 		config: config,
-		logger: log.New(os.Stdout, "[SR-IOV-MANAGER] ", log.LstdFlags),
 	}
 }
 
 // DiscoverDevices discovers all SR-IOV capable devices
 func (m *SRIOVManager) DiscoverDevices() ([]Device, error) {
-	m.logger.Printf("Discovering SR-IOV capable devices...")
+	Info("Discovering SR-IOV capable devices...")
 
 	devices, err := ParseLshwDynamic()
 	if err != nil {
@@ -36,12 +35,12 @@ func (m *SRIOVManager) DiscoverDevices() ([]Device, error) {
 	// Enrich with PCI and ethtool information
 	devices, err = AttachPciInfo(devices)
 	if err != nil {
-		m.logger.Printf("Warning: failed to attach PCI info: %v", err)
+		WithError(err).Warn("Failed to attach PCI info")
 	}
 
 	devices, err = AttachEthtoolInfo(devices)
 	if err != nil {
-		m.logger.Printf("Warning: failed to attach ethtool info: %v", err)
+		WithError(err).Warn("Failed to attach ethtool info")
 	}
 
 	// Filter for SR-IOV capable devices
@@ -49,22 +48,29 @@ func (m *SRIOVManager) DiscoverDevices() ([]Device, error) {
 	for _, device := range devices {
 		if device.SRIOVCapable {
 			sriovDevices = append(sriovDevices, device)
-			m.logger.Printf("Found SR-IOV device: %s (PCI: %s, Vendor: %s, Product: %s)",
-				device.Name, device.PCIAddress, device.Vendor, device.Product)
+			WithFields(logrus.Fields{
+				"device":  device.Name,
+				"pci":     device.PCIAddress,
+				"vendor":  device.Vendor,
+				"product": device.Product,
+			}).Info("Found SR-IOV device")
 		}
 	}
 
-	m.logger.Printf("Discovered %d SR-IOV capable devices", len(sriovDevices))
+	WithField("count", len(sriovDevices)).Info("Discovered SR-IOV capable devices")
 	return sriovDevices, nil
 }
 
 // ConfigureDevices configures SR-IOV on all discovered devices according to policies
 func (m *SRIOVManager) ConfigureDevices(devices []Device) error {
-	m.logger.Printf("Configuring SR-IOV devices...")
+	WithField("device_count", len(devices)).Info("Configuring SR-IOV devices")
 
 	for _, device := range devices {
 		if err := m.configureDevice(device); err != nil {
-			m.logger.Printf("Error configuring device %s: %v", device.Name, err)
+			WithFields(logrus.Fields{
+				"device": device.Name,
+				"pci":    device.PCIAddress,
+			}).WithError(err).Error("Error configuring device")
 			continue
 		}
 	}
@@ -74,7 +80,10 @@ func (m *SRIOVManager) ConfigureDevices(devices []Device) error {
 
 // configureDevice configures a single SR-IOV device
 func (m *SRIOVManager) configureDevice(device Device) error {
-	m.logger.Printf("Configuring device: %s (PCI: %s)", device.Name, device.PCIAddress)
+	WithFields(logrus.Fields{
+		"device": device.Name,
+		"pci":    device.PCIAddress,
+	}).Info("Configuring device")
 
 	// Extract vendor and device IDs from PCI address or use lshw data
 	vendorID, deviceID := m.extractDeviceIDs(device)
@@ -85,24 +94,37 @@ func (m *SRIOVManager) configureDevice(device Device) error {
 	// Find applicable policy
 	policy := m.config.GetDevicePolicy(vendorID, deviceID)
 	if policy == nil {
-		m.logger.Printf("No policy found for device %s (Vendor: %s, Device: %s)",
-			device.Name, vendorID, deviceID)
+		WithFields(logrus.Fields{
+			"device":    device.Name,
+			"vendor":    vendorID,
+			"device_id": deviceID,
+		}).Info("No policy found for device")
 		return nil
 	}
 
-	m.logger.Printf("Applying policy for %s: %s", device.Name, policy.Description)
+	WithFields(logrus.Fields{
+		"device":  device.Name,
+		"policy":  policy.Description,
+		"mode":    string(policy.Mode),
+		"num_vfs": policy.NumVFs,
+	}).Info("Applying policy for device")
 
 	// Check if device supports the requested number of VFs
 	if device.SRIOVInfo != nil && policy.NumVFs > device.SRIOVInfo.TotalVFs {
-		m.logger.Printf("Warning: Requested %d VFs but device only supports %d",
-			policy.NumVFs, device.SRIOVInfo.TotalVFs)
+		WithFields(logrus.Fields{
+			"device":    device.Name,
+			"requested": policy.NumVFs,
+			"supported": device.SRIOVInfo.TotalVFs,
+		}).Warn("Requested VFs exceed device capability, adjusting")
 		policy.NumVFs = device.SRIOVInfo.TotalVFs
 	}
 
 	// Configure switchdev mode if required
 	if policy.EnableSwitch {
 		if err := m.enableSwitchMode(device); err != nil {
-			m.logger.Printf("Warning: Failed to enable switch mode for %s: %v", device.Name, err)
+			WithFields(logrus.Fields{
+				"device": device.Name,
+			}).WithError(err).Warn("Failed to enable switch mode")
 		}
 	}
 
@@ -115,11 +137,11 @@ func (m *SRIOVManager) configureDevice(device Device) error {
 	switch policy.Mode {
 	case ModeVFLag:
 		if err := m.configureVFLagMode(device, policy); err != nil {
-			m.logger.Printf("Warning: Failed to configure VF-LAG mode: %v", err)
+			WithError(err).Warn("Failed to configure VF-LAG mode")
 		}
 	case ModeSingleHome:
 		// Single-home mode requires no additional configuration
-		m.logger.Printf("Device %s configured in single-home mode", device.Name)
+		WithField("device", device.Name).Info("Device configured in single-home mode")
 	}
 
 	return nil
@@ -149,7 +171,7 @@ func (m *SRIOVManager) extractDeviceIDs(device Device) (string, string) {
 
 // enableSwitchMode enables switchdev mode for Mellanox devices
 func (m *SRIOVManager) enableSwitchMode(device Device) error {
-	m.logger.Printf("Enabling switch mode for %s", device.Name)
+	Info("Enabling switch mode for %s", device.Name)
 
 	// For Mellanox ConnectX-7, enable switchdev mode
 	if strings.Contains(strings.ToLower(device.Vendor), "mellanox") {
@@ -158,7 +180,7 @@ func (m *SRIOVManager) enableSwitchMode(device Device) error {
 		if output, err := cmd.CombinedOutput(); err != nil {
 			return fmt.Errorf("failed to enable switch mode: %s, %v", string(output), err)
 		}
-		m.logger.Printf("Switch mode enabled for %s", device.Name)
+		Info("Switch mode enabled for %s", device.Name)
 	}
 
 	return nil
@@ -166,7 +188,7 @@ func (m *SRIOVManager) enableSwitchMode(device Device) error {
 
 // enableSRIOV enables SR-IOV on a device
 func (m *SRIOVManager) enableSRIOV(device Device, numVFs int) error {
-	m.logger.Printf("Enabling SR-IOV on %s with %d VFs", device.Name, numVFs)
+	Info("Enabling SR-IOV on %s with %d VFs", device.Name, numVFs)
 
 	// Find the sysfs path for the device
 	sysfsPath := filepath.Join("/sys/bus/pci/devices", device.PCIAddress)
@@ -175,7 +197,7 @@ func (m *SRIOVManager) enableSRIOV(device Device, numVFs int) error {
 	// Check if SR-IOV is already enabled
 	if data, err := os.ReadFile(sriovPath); err == nil {
 		if currentVFs := strings.TrimSpace(string(data)); currentVFs != "0" {
-			m.logger.Printf("SR-IOV already enabled on %s with %s VFs", device.Name, currentVFs)
+			Info("SR-IOV already enabled on %s with %s VFs", device.Name, currentVFs)
 			return nil
 		}
 	}
@@ -185,13 +207,13 @@ func (m *SRIOVManager) enableSRIOV(device Device, numVFs int) error {
 		return fmt.Errorf("failed to enable SR-IOV: %v", err)
 	}
 
-	m.logger.Printf("SR-IOV enabled on %s with %d VFs", device.Name, numVFs)
+	Info("SR-IOV enabled on %s with %d VFs", device.Name, numVFs)
 	return nil
 }
 
 // configureVFLagMode configures VF-LAG mode for bonding
 func (m *SRIOVManager) configureVFLagMode(device Device, policy *DevicePolicy) error {
-	m.logger.Printf("Configuring VF-LAG mode for %s", device.Name)
+	Info("Configuring VF-LAG mode for %s", device.Name)
 
 	// Find bond configuration for this device
 	var bondConfig *BondConfig
@@ -221,20 +243,20 @@ func (m *SRIOVManager) configureVFLagMode(device Device, policy *DevicePolicy) e
 
 // createBondInterface creates a bond interface
 func (m *SRIOVManager) createBondInterface(bond *BondConfig) error {
-	m.logger.Printf("Creating bond interface %s", bond.BondName)
+	Info("Creating bond interface %s", bond.BondName)
 
 	// Create bond interface using ip command
 	cmd := exec.Command("ip", "link", "add", bond.BondName, "type", "bond")
 	if output, err := cmd.CombinedOutput(); err != nil {
 		// Bond might already exist
-		m.logger.Printf("Bond interface %s might already exist: %s", bond.BondName, string(output))
+		Info("Bond interface %s might already exist: %s", bond.BondName, string(output))
 	}
 
 	// Set bond mode
 	if bond.Mode != "" {
 		modePath := fmt.Sprintf("/sys/class/net/%s/bonding/mode", bond.BondName)
 		if err := os.WriteFile(modePath, []byte(bond.Mode), 0644); err != nil {
-			m.logger.Printf("Warning: Failed to set bond mode: %v", err)
+			Warn("Failed to set bond mode: %v", err)
 		}
 	}
 
@@ -242,7 +264,7 @@ func (m *SRIOVManager) createBondInterface(bond *BondConfig) error {
 	if bond.MIIMonitor > 0 {
 		monitorPath := fmt.Sprintf("/sys/class/net/%s/bonding/miimon", bond.BondName)
 		if err := os.WriteFile(monitorPath, []byte(strconv.Itoa(bond.MIIMonitor)), 0644); err != nil {
-			m.logger.Printf("Warning: Failed to set MII monitor: %v", err)
+			Warn("Failed to set MII monitor: %v", err)
 		}
 	}
 
@@ -250,23 +272,23 @@ func (m *SRIOVManager) createBondInterface(bond *BondConfig) error {
 	for _, slave := range bond.SlaveInterfaces {
 		cmd := exec.Command("ip", "link", "set", slave, "master", bond.BondName)
 		if output, err := cmd.CombinedOutput(); err != nil {
-			m.logger.Printf("Warning: Failed to add slave %s to bond: %s", slave, string(output))
+			Warn("Failed to add slave %s to bond: %s", slave, string(output))
 		}
 	}
 
 	// Bring up bond interface
 	cmd = exec.Command("ip", "link", "set", bond.BondName, "up")
 	if output, err := cmd.CombinedOutput(); err != nil {
-		m.logger.Printf("Warning: Failed to bring up bond interface: %s", string(output))
+		Warn("Failed to bring up bond interface: %s", string(output))
 	}
 
-	m.logger.Printf("Bond interface %s created successfully", bond.BondName)
+	Info("Bond interface %s created successfully", bond.BondName)
 	return nil
 }
 
 // Run performs the complete SR-IOV configuration process
 func (m *SRIOVManager) Run() error {
-	m.logger.Printf("Starting SR-IOV Manager...")
+	Info("Starting SR-IOV Manager...")
 
 	// Discover devices
 	devices, err := m.DiscoverDevices()
@@ -279,13 +301,13 @@ func (m *SRIOVManager) Run() error {
 		return fmt.Errorf("device configuration failed: %v", err)
 	}
 
-	m.logger.Printf("SR-IOV Manager completed successfully")
+	Info("SR-IOV Manager completed successfully")
 	return nil
 }
 
 // ValidateConfiguration validates the current system configuration
 func (m *SRIOVManager) ValidateConfiguration() error {
-	m.logger.Printf("Validating SR-IOV configuration...")
+	Info("Validating SR-IOV configuration...")
 
 	// Validate config file
 	if err := m.config.ValidateConfig(); err != nil {
@@ -296,7 +318,7 @@ func (m *SRIOVManager) ValidateConfiguration() error {
 	requiredTools := []string{"ip", "mlxconfig"}
 	for _, tool := range requiredTools {
 		if _, err := exec.LookPath(tool); err != nil {
-			m.logger.Printf("Warning: Required tool %s not found", tool)
+			Warn("Required tool %s not found", tool)
 		}
 	}
 
@@ -305,6 +327,6 @@ func (m *SRIOVManager) ValidateConfiguration() error {
 		return fmt.Errorf("PCI sysfs not available - SR-IOV not supported")
 	}
 
-	m.logger.Printf("Configuration validation completed")
+	Info("Configuration validation completed")
 	return nil
 }

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        v3.12.4
-// source: proto/sriov.proto
+// source: sriov.proto
 
 package proto
 
@@ -29,7 +29,7 @@ type Empty struct {
 
 func (x *Empty) Reset() {
 	*x = Empty{}
-	mi := &file_proto_sriov_proto_msgTypes[0]
+	mi := &file_sriov_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -41,7 +41,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_sriov_proto_msgTypes[0]
+	mi := &file_sriov_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -54,7 +54,7 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_proto_sriov_proto_rawDescGZIP(), []int{0}
+	return file_sriov_proto_rawDescGZIP(), []int{0}
 }
 
 type DetailedCapability struct {
@@ -71,7 +71,7 @@ type DetailedCapability struct {
 
 func (x *DetailedCapability) Reset() {
 	*x = DetailedCapability{}
-	mi := &file_proto_sriov_proto_msgTypes[1]
+	mi := &file_sriov_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -83,7 +83,7 @@ func (x *DetailedCapability) String() string {
 func (*DetailedCapability) ProtoMessage() {}
 
 func (x *DetailedCapability) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_sriov_proto_msgTypes[1]
+	mi := &file_sriov_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -96,7 +96,7 @@ func (x *DetailedCapability) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DetailedCapability.ProtoReflect.Descriptor instead.
 func (*DetailedCapability) Descriptor() ([]byte, []int) {
-	return file_proto_sriov_proto_rawDescGZIP(), []int{1}
+	return file_sriov_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *DetailedCapability) GetId() string {
@@ -152,7 +152,7 @@ type EthtoolFeature struct {
 
 func (x *EthtoolFeature) Reset() {
 	*x = EthtoolFeature{}
-	mi := &file_proto_sriov_proto_msgTypes[2]
+	mi := &file_sriov_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -164,7 +164,7 @@ func (x *EthtoolFeature) String() string {
 func (*EthtoolFeature) ProtoMessage() {}
 
 func (x *EthtoolFeature) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_sriov_proto_msgTypes[2]
+	mi := &file_sriov_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -177,7 +177,7 @@ func (x *EthtoolFeature) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EthtoolFeature.ProtoReflect.Descriptor instead.
 func (*EthtoolFeature) Descriptor() ([]byte, []int) {
-	return file_proto_sriov_proto_rawDescGZIP(), []int{2}
+	return file_sriov_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *EthtoolFeature) GetName() string {
@@ -217,7 +217,7 @@ type EthtoolRingInfo struct {
 
 func (x *EthtoolRingInfo) Reset() {
 	*x = EthtoolRingInfo{}
-	mi := &file_proto_sriov_proto_msgTypes[3]
+	mi := &file_sriov_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -229,7 +229,7 @@ func (x *EthtoolRingInfo) String() string {
 func (*EthtoolRingInfo) ProtoMessage() {}
 
 func (x *EthtoolRingInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_sriov_proto_msgTypes[3]
+	mi := &file_sriov_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -242,7 +242,7 @@ func (x *EthtoolRingInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EthtoolRingInfo.ProtoReflect.Descriptor instead.
 func (*EthtoolRingInfo) Descriptor() ([]byte, []int) {
-	return file_proto_sriov_proto_rawDescGZIP(), []int{3}
+	return file_sriov_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *EthtoolRingInfo) GetRxMaxPending() uint32 {
@@ -317,7 +317,7 @@ type EthtoolChannelInfo struct {
 
 func (x *EthtoolChannelInfo) Reset() {
 	*x = EthtoolChannelInfo{}
-	mi := &file_proto_sriov_proto_msgTypes[4]
+	mi := &file_sriov_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -329,7 +329,7 @@ func (x *EthtoolChannelInfo) String() string {
 func (*EthtoolChannelInfo) ProtoMessage() {}
 
 func (x *EthtoolChannelInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_sriov_proto_msgTypes[4]
+	mi := &file_sriov_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -342,7 +342,7 @@ func (x *EthtoolChannelInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EthtoolChannelInfo.ProtoReflect.Descriptor instead.
 func (*EthtoolChannelInfo) Descriptor() ([]byte, []int) {
-	return file_proto_sriov_proto_rawDescGZIP(), []int{4}
+	return file_sriov_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *EthtoolChannelInfo) GetMaxRx() uint32 {
@@ -412,7 +412,7 @@ type EthtoolInfo struct {
 
 func (x *EthtoolInfo) Reset() {
 	*x = EthtoolInfo{}
-	mi := &file_proto_sriov_proto_msgTypes[5]
+	mi := &file_sriov_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -424,7 +424,7 @@ func (x *EthtoolInfo) String() string {
 func (*EthtoolInfo) ProtoMessage() {}
 
 func (x *EthtoolInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_sriov_proto_msgTypes[5]
+	mi := &file_sriov_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -437,7 +437,7 @@ func (x *EthtoolInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EthtoolInfo.ProtoReflect.Descriptor instead.
 func (*EthtoolInfo) Descriptor() ([]byte, []int) {
-	return file_proto_sriov_proto_rawDescGZIP(), []int{5}
+	return file_sriov_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *EthtoolInfo) GetFeatures() []*EthtoolFeature {
@@ -471,13 +471,16 @@ type Device struct {
 	SriovCapable         bool                           `protobuf:"varint,6,opt,name=sriov_capable,json=sriovCapable,proto3" json:"sriov_capable,omitempty"`
 	DetailedCapabilities map[string]*DetailedCapability `protobuf:"bytes,7,rep,name=detailed_capabilities,json=detailedCapabilities,proto3" json:"detailed_capabilities,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	EthtoolInfo          *EthtoolInfo                   `protobuf:"bytes,8,opt,name=ethtool_info,json=ethtoolInfo,proto3" json:"ethtool_info,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	// NUMA topology information
+	NumaNode      int32           `protobuf:"varint,9,opt,name=numa_node,json=numaNode,proto3" json:"numa_node,omitempty"`
+	NumaDistance  map[int32]int32 `protobuf:"bytes,10,rep,name=numa_distance,json=numaDistance,proto3" json:"numa_distance,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Device) Reset() {
 	*x = Device{}
-	mi := &file_proto_sriov_proto_msgTypes[6]
+	mi := &file_sriov_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -489,7 +492,7 @@ func (x *Device) String() string {
 func (*Device) ProtoMessage() {}
 
 func (x *Device) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_sriov_proto_msgTypes[6]
+	mi := &file_sriov_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -502,7 +505,7 @@ func (x *Device) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Device.ProtoReflect.Descriptor instead.
 func (*Device) Descriptor() ([]byte, []int) {
-	return file_proto_sriov_proto_rawDescGZIP(), []int{6}
+	return file_sriov_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Device) GetPciAddress() string {
@@ -561,6 +564,20 @@ func (x *Device) GetEthtoolInfo() *EthtoolInfo {
 	return nil
 }
 
+func (x *Device) GetNumaNode() int32 {
+	if x != nil {
+		return x.NumaNode
+	}
+	return 0
+}
+
+func (x *Device) GetNumaDistance() map[int32]int32 {
+	if x != nil {
+		return x.NumaDistance
+	}
+	return nil
+}
+
 type ListDevicesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -569,7 +586,7 @@ type ListDevicesRequest struct {
 
 func (x *ListDevicesRequest) Reset() {
 	*x = ListDevicesRequest{}
-	mi := &file_proto_sriov_proto_msgTypes[7]
+	mi := &file_sriov_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -581,7 +598,7 @@ func (x *ListDevicesRequest) String() string {
 func (*ListDevicesRequest) ProtoMessage() {}
 
 func (x *ListDevicesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_sriov_proto_msgTypes[7]
+	mi := &file_sriov_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -594,7 +611,7 @@ func (x *ListDevicesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDevicesRequest.ProtoReflect.Descriptor instead.
 func (*ListDevicesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_sriov_proto_rawDescGZIP(), []int{7}
+	return file_sriov_proto_rawDescGZIP(), []int{7}
 }
 
 type ListDevicesResponse struct {
@@ -606,7 +623,7 @@ type ListDevicesResponse struct {
 
 func (x *ListDevicesResponse) Reset() {
 	*x = ListDevicesResponse{}
-	mi := &file_proto_sriov_proto_msgTypes[8]
+	mi := &file_sriov_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -618,7 +635,7 @@ func (x *ListDevicesResponse) String() string {
 func (*ListDevicesResponse) ProtoMessage() {}
 
 func (x *ListDevicesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_sriov_proto_msgTypes[8]
+	mi := &file_sriov_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -631,7 +648,7 @@ func (x *ListDevicesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDevicesResponse.ProtoReflect.Descriptor instead.
 func (*ListDevicesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_sriov_proto_rawDescGZIP(), []int{8}
+	return file_sriov_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListDevicesResponse) GetDevices() []*Device {
@@ -649,7 +666,7 @@ type RefreshDevicesRequest struct {
 
 func (x *RefreshDevicesRequest) Reset() {
 	*x = RefreshDevicesRequest{}
-	mi := &file_proto_sriov_proto_msgTypes[9]
+	mi := &file_sriov_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -661,7 +678,7 @@ func (x *RefreshDevicesRequest) String() string {
 func (*RefreshDevicesRequest) ProtoMessage() {}
 
 func (x *RefreshDevicesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_sriov_proto_msgTypes[9]
+	mi := &file_sriov_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -674,7 +691,7 @@ func (x *RefreshDevicesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshDevicesRequest.ProtoReflect.Descriptor instead.
 func (*RefreshDevicesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_sriov_proto_rawDescGZIP(), []int{9}
+	return file_sriov_proto_rawDescGZIP(), []int{9}
 }
 
 type RefreshDevicesResponse struct {
@@ -688,7 +705,7 @@ type RefreshDevicesResponse struct {
 
 func (x *RefreshDevicesResponse) Reset() {
 	*x = RefreshDevicesResponse{}
-	mi := &file_proto_sriov_proto_msgTypes[10]
+	mi := &file_sriov_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -700,7 +717,7 @@ func (x *RefreshDevicesResponse) String() string {
 func (*RefreshDevicesResponse) ProtoMessage() {}
 
 func (x *RefreshDevicesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_sriov_proto_msgTypes[10]
+	mi := &file_sriov_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -713,7 +730,7 @@ func (x *RefreshDevicesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshDevicesResponse.ProtoReflect.Descriptor instead.
 func (*RefreshDevicesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_sriov_proto_rawDescGZIP(), []int{10}
+	return file_sriov_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *RefreshDevicesResponse) GetSuccess() bool {
@@ -737,11 +754,11 @@ func (x *RefreshDevicesResponse) GetDeviceCount() int32 {
 	return 0
 }
 
-var File_proto_sriov_proto protoreflect.FileDescriptor
+var File_sriov_proto protoreflect.FileDescriptor
 
-const file_proto_sriov_proto_rawDesc = "" +
+const file_sriov_proto_rawDesc = "" +
 	"\n" +
-	"\x11proto/sriov.proto\x12\x05sriov\"\a\n" +
+	"\vsriov.proto\x12\x05sriov\"\a\n" +
 	"\x05Empty\"\x96\x02\n" +
 	"\x12DetailedCapability\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
@@ -783,7 +800,7 @@ const file_proto_sriov_proto_rawDesc = "" +
 	"\vEthtoolInfo\x121\n" +
 	"\bfeatures\x18\x01 \x03(\v2\x15.sriov.EthtoolFeatureR\bfeatures\x12*\n" +
 	"\x04ring\x18\x02 \x01(\v2\x16.sriov.EthtoolRingInfoR\x04ring\x125\n" +
-	"\bchannels\x18\x03 \x01(\v2\x19.sriov.EthtoolChannelInfoR\bchannels\"\xa5\x03\n" +
+	"\bchannels\x18\x03 \x01(\v2\x19.sriov.EthtoolChannelInfoR\bchannels\"\xc9\x04\n" +
 	"\x06Device\x12\x1f\n" +
 	"\vpci_address\x18\x01 \x01(\tR\n" +
 	"pciAddress\x12\x12\n" +
@@ -793,10 +810,16 @@ const file_proto_sriov_proto_rawDesc = "" +
 	"\aproduct\x18\x05 \x01(\tR\aproduct\x12#\n" +
 	"\rsriov_capable\x18\x06 \x01(\bR\fsriovCapable\x12\\\n" +
 	"\x15detailed_capabilities\x18\a \x03(\v2'.sriov.Device.DetailedCapabilitiesEntryR\x14detailedCapabilities\x125\n" +
-	"\fethtool_info\x18\b \x01(\v2\x12.sriov.EthtoolInfoR\vethtoolInfo\x1ab\n" +
+	"\fethtool_info\x18\b \x01(\v2\x12.sriov.EthtoolInfoR\vethtoolInfo\x12\x1b\n" +
+	"\tnuma_node\x18\t \x01(\x05R\bnumaNode\x12D\n" +
+	"\rnuma_distance\x18\n" +
+	" \x03(\v2\x1f.sriov.Device.NumaDistanceEntryR\fnumaDistance\x1ab\n" +
 	"\x19DetailedCapabilitiesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12/\n" +
-	"\x05value\x18\x02 \x01(\v2\x19.sriov.DetailedCapabilityR\x05value:\x028\x01\"\x14\n" +
+	"\x05value\x18\x02 \x01(\v2\x19.sriov.DetailedCapabilityR\x05value:\x028\x01\x1a?\n" +
+	"\x11NumaDistanceEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\x05R\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\"\x14\n" +
 	"\x12ListDevicesRequest\">\n" +
 	"\x13ListDevicesResponse\x12'\n" +
 	"\adevices\x18\x01 \x03(\v2\r.sriov.DeviceR\adevices\"\x17\n" +
@@ -810,19 +833,19 @@ const file_proto_sriov_proto_rawDesc = "" +
 	"\x0eRefreshDevices\x12\x1c.sriov.RefreshDevicesRequest\x1a\x1d.sriov.RefreshDevicesResponseB&Z$example.com/sriov-plugin/proto;protob\x06proto3"
 
 var (
-	file_proto_sriov_proto_rawDescOnce sync.Once
-	file_proto_sriov_proto_rawDescData []byte
+	file_sriov_proto_rawDescOnce sync.Once
+	file_sriov_proto_rawDescData []byte
 )
 
-func file_proto_sriov_proto_rawDescGZIP() []byte {
-	file_proto_sriov_proto_rawDescOnce.Do(func() {
-		file_proto_sriov_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_sriov_proto_rawDesc), len(file_proto_sriov_proto_rawDesc)))
+func file_sriov_proto_rawDescGZIP() []byte {
+	file_sriov_proto_rawDescOnce.Do(func() {
+		file_sriov_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_sriov_proto_rawDesc), len(file_sriov_proto_rawDesc)))
 	})
-	return file_proto_sriov_proto_rawDescData
+	return file_sriov_proto_rawDescData
 }
 
-var file_proto_sriov_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
-var file_proto_sriov_proto_goTypes = []any{
+var file_sriov_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_sriov_proto_goTypes = []any{
 	(*Empty)(nil),                  // 0: sriov.Empty
 	(*DetailedCapability)(nil),     // 1: sriov.DetailedCapability
 	(*EthtoolFeature)(nil),         // 2: sriov.EthtoolFeature
@@ -836,47 +859,49 @@ var file_proto_sriov_proto_goTypes = []any{
 	(*RefreshDevicesResponse)(nil), // 10: sriov.RefreshDevicesResponse
 	nil,                            // 11: sriov.DetailedCapability.ParametersEntry
 	nil,                            // 12: sriov.Device.DetailedCapabilitiesEntry
+	nil,                            // 13: sriov.Device.NumaDistanceEntry
 }
-var file_proto_sriov_proto_depIdxs = []int32{
+var file_sriov_proto_depIdxs = []int32{
 	11, // 0: sriov.DetailedCapability.parameters:type_name -> sriov.DetailedCapability.ParametersEntry
 	2,  // 1: sriov.EthtoolInfo.features:type_name -> sriov.EthtoolFeature
 	3,  // 2: sriov.EthtoolInfo.ring:type_name -> sriov.EthtoolRingInfo
 	4,  // 3: sriov.EthtoolInfo.channels:type_name -> sriov.EthtoolChannelInfo
 	12, // 4: sriov.Device.detailed_capabilities:type_name -> sriov.Device.DetailedCapabilitiesEntry
 	5,  // 5: sriov.Device.ethtool_info:type_name -> sriov.EthtoolInfo
-	6,  // 6: sriov.ListDevicesResponse.devices:type_name -> sriov.Device
-	1,  // 7: sriov.Device.DetailedCapabilitiesEntry.value:type_name -> sriov.DetailedCapability
-	7,  // 8: sriov.SRIOVManager.ListDevices:input_type -> sriov.ListDevicesRequest
-	9,  // 9: sriov.SRIOVManager.RefreshDevices:input_type -> sriov.RefreshDevicesRequest
-	8,  // 10: sriov.SRIOVManager.ListDevices:output_type -> sriov.ListDevicesResponse
-	10, // 11: sriov.SRIOVManager.RefreshDevices:output_type -> sriov.RefreshDevicesResponse
-	10, // [10:12] is the sub-list for method output_type
-	8,  // [8:10] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	13, // 6: sriov.Device.numa_distance:type_name -> sriov.Device.NumaDistanceEntry
+	6,  // 7: sriov.ListDevicesResponse.devices:type_name -> sriov.Device
+	1,  // 8: sriov.Device.DetailedCapabilitiesEntry.value:type_name -> sriov.DetailedCapability
+	7,  // 9: sriov.SRIOVManager.ListDevices:input_type -> sriov.ListDevicesRequest
+	9,  // 10: sriov.SRIOVManager.RefreshDevices:input_type -> sriov.RefreshDevicesRequest
+	8,  // 11: sriov.SRIOVManager.ListDevices:output_type -> sriov.ListDevicesResponse
+	10, // 12: sriov.SRIOVManager.RefreshDevices:output_type -> sriov.RefreshDevicesResponse
+	11, // [11:13] is the sub-list for method output_type
+	9,  // [9:11] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
-func init() { file_proto_sriov_proto_init() }
-func file_proto_sriov_proto_init() {
-	if File_proto_sriov_proto != nil {
+func init() { file_sriov_proto_init() }
+func file_sriov_proto_init() {
+	if File_sriov_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_sriov_proto_rawDesc), len(file_proto_sriov_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_sriov_proto_rawDesc), len(file_sriov_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_sriov_proto_goTypes,
-		DependencyIndexes: file_proto_sriov_proto_depIdxs,
-		MessageInfos:      file_proto_sriov_proto_msgTypes,
+		GoTypes:           file_sriov_proto_goTypes,
+		DependencyIndexes: file_sriov_proto_depIdxs,
+		MessageInfos:      file_sriov_proto_msgTypes,
 	}.Build()
-	File_proto_sriov_proto = out.File
-	file_proto_sriov_proto_goTypes = nil
-	file_proto_sriov_proto_depIdxs = nil
+	File_sriov_proto = out.File
+	file_sriov_proto_goTypes = nil
+	file_sriov_proto_depIdxs = nil
 }

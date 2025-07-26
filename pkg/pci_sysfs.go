@@ -68,6 +68,9 @@ type SysfsPciDevice struct {
 	Capabilities map[string]string
 	// Detailed capability information
 	DetailedCapabilities map[string]DetailedCapability
+	// NUMA topology information
+	NUMANode     int
+	NUMADistance map[int]int // Distance to other NUMA nodes
 }
 
 // DetailedCapability holds detailed information about a PCI capability
@@ -223,7 +226,7 @@ func ParseSysfsPciDevices() ([]SysfsPciDevice, error) {
 
 		// Get the full path to the device
 		devicePath := filepath.Join(sysfsPath, entry.Name())
-		
+
 		// Check if the device path is accessible
 		if _, err := os.Stat(devicePath); err != nil {
 			// Skip if we can't access the device
@@ -233,7 +236,10 @@ func ParseSysfsPciDevices() ([]SysfsPciDevice, error) {
 		device, err := parseSysfsPciDevice(devicePath, entry.Name(), vendorDB)
 		if err != nil {
 			// Log error but continue with other devices
-			fmt.Printf("Warning: failed to parse device %s: %v\n", entry.Name(), err)
+			WithFields(map[string]interface{}{
+				"device": entry.Name(),
+				"error":  err.Error(),
+			}).Warn("Failed to parse device")
 			continue
 		}
 
@@ -278,6 +284,11 @@ func parseSysfsPciDevice(devicePath, deviceName string, vendorDB *VendorDatabase
 	// Parse detailed PCI capabilities
 	if err := parseDetailedPciCapabilities(devicePath, &device); err != nil {
 		// Detailed capabilities might not be available, continue
+	}
+
+	// Parse NUMA topology information
+	if err := parseNUMANode(devicePath, &device); err != nil {
+		// NUMA might not be available, continue
 	}
 
 	// Enrich with vendor database information
@@ -527,37 +538,33 @@ func parseDetailedPciCapabilities(devicePath string, device *SysfsPciDevice) err
 
 	// Parse MSI-X capability
 	if err := parseDetailedMSIXCapability(devicePath, device); err != nil {
-		// Continue even if MSI-X parsing fails
-		fmt.Printf("DEBUG: MSI-X parsing failed for %s: %v\n", devicePath, err)
+		Debug("MSI-X parsing failed for %s: %v", devicePath, err)
 	} else {
-		fmt.Printf("DEBUG: MSI-X parsing succeeded for %s\n", devicePath)
+		Debug("MSI-X parsing succeeded for %s", devicePath)
 	}
 
 	// Parse PCI Express capability
 	if err := parseDetailedPCIExpressCapability(devicePath, device); err != nil {
-		// Continue even if PCIe parsing fails
-		fmt.Printf("DEBUG: PCIe parsing failed for %s: %v\n", devicePath, err)
+		Debug("PCIe parsing failed for %s: %v", devicePath, err)
 	} else {
-		fmt.Printf("DEBUG: PCIe parsing succeeded for %s\n", devicePath)
+		Debug("PCIe parsing succeeded for %s", devicePath)
 	}
 
 	// Parse Power Management capability
 	if err := parseDetailedPowerManagementCapability(devicePath, device); err != nil {
-		// Continue even if PM parsing fails
-		fmt.Printf("DEBUG: PM parsing failed for %s: %v\n", devicePath, err)
+		Debug("PM parsing failed for %s: %v", devicePath, err)
 	} else {
-		fmt.Printf("DEBUG: PM parsing succeeded for %s\n", devicePath)
+		Debug("PM parsing succeeded for %s", devicePath)
 	}
 
-	// Parse SR-IOV capability (if present)
+	// Parse SR-IOV capability
 	if err := parseDetailedSRIOVCapability(devicePath, device); err != nil {
-		// Continue even if SR-IOV parsing fails
-		fmt.Printf("DEBUG: SR-IOV parsing failed for %s: %v\n", devicePath, err)
+		Debug("SR-IOV parsing failed for %s: %v", devicePath, err)
 	} else {
-		fmt.Printf("DEBUG: SR-IOV parsing succeeded for %s\n", devicePath)
+		Debug("SR-IOV parsing succeeded for %s", devicePath)
 	}
 
-	fmt.Printf("DEBUG: Total detailed capabilities found for %s: %d\n", devicePath, len(device.DetailedCapabilities))
+	Debug("Total detailed capabilities found for %s: %d", devicePath, len(device.DetailedCapabilities))
 	return nil
 }
 
@@ -713,6 +720,50 @@ func parseDetailedSRIOVCapability(devicePath string, device *SysfsPciDevice) err
 	}
 
 	device.DetailedCapabilities["SR-IOV"] = capability
+	return nil
+}
+
+// parseNUMANode parses NUMA node information from sysfs
+func parseNUMANode(devicePath string, device *SysfsPciDevice) error {
+	numaPath := filepath.Join(devicePath, "numa_node")
+	data, err := os.ReadFile(numaPath)
+	if err != nil {
+		// NUMA might not be available, set to -1 (no NUMA affinity)
+		device.NUMANode = -1
+		return nil
+	}
+
+	nodeStr := strings.TrimSpace(string(data))
+	if nodeStr == "-1" {
+		device.NUMANode = -1 // No NUMA affinity
+	} else {
+		node, err := strconv.Atoi(nodeStr)
+		if err != nil {
+			return fmt.Errorf("invalid NUMA node: %s", nodeStr)
+		}
+		device.NUMANode = node
+	}
+
+	// Initialize NUMA distance map
+	device.NUMADistance = make(map[int]int)
+
+	// Try to read NUMA distance information if available
+	distancePath := filepath.Join(devicePath, "numa_distance")
+	if distanceData, err := os.ReadFile(distancePath); err == nil {
+		// Parse distance information (format: "0:10 1:20" etc.)
+		distances := strings.Fields(string(distanceData))
+		for _, dist := range distances {
+			parts := strings.Split(dist, ":")
+			if len(parts) == 2 {
+				if node, err := strconv.Atoi(parts[0]); err == nil {
+					if distance, err := strconv.Atoi(parts[1]); err == nil {
+						device.NUMADistance[node] = distance
+					}
+				}
+			}
+		}
+	}
+
 	return nil
 }
 
