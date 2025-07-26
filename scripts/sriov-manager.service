@@ -1,0 +1,32 @@
+[Unit]
+Description=SR-IOV Manager Service
+Documentation=https://github.com/your-repo/sriov-plugin
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/local/bin/sriov-manager
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sriov-manager
+
+# Security settings
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/sys/bus/pci/devices
+ReadWritePaths=/sys/class/net
+ReadWritePaths=/etc/sriov-manager
+
+# Capabilities
+AmbientCapabilities=CAP_NET_ADMIN CAP_SYS_ADMIN
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_SYS_ADMIN
+
+[Install]
+WantedBy=multi-user.target 
