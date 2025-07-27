@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net"
@@ -310,8 +311,124 @@ func (s *server) GetPoolConfig(ctx context.Context, req *pb.PoolQuery) (*pb.Pool
 			return pool.cfg, nil
 		}
 	}
+	return nil, fmt.Errorf("pool %s not found", req.Name)
+}
 
-	return nil, fmt.Errorf("pool not found: %s", req.Name)
+func (s *server) DumpInterfaces(ctx context.Context, req *pb.Empty) (*pb.InterfaceDump, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// Create comprehensive dump structure
+	dump := map[string]interface{}{
+		"server_info": map[string]interface{}{
+			"version":     "1.0.0",
+			"timestamp":   time.Now().Format(time.RFC3339),
+			"config_path": s.cfgPath,
+		},
+		"pools":              map[string]interface{}{},
+		"physical_functions": map[string]interface{}{},
+		"virtual_functions":  map[string]interface{}{},
+		"allocations": map[string]interface{}{
+			"allocated_vfs": []string{},
+			"masked_vfs":    []string{},
+		},
+		"statistics": map[string]interface{}{
+			"total_pfs":     0,
+			"total_vfs":     0,
+			"allocated_vfs": 0,
+			"masked_vfs":    0,
+			"available_vfs": 0,
+		},
+	}
+
+	// Collect pool information
+	for _, pool := range s.poolMap {
+		vfs := []string{}
+		for vf := range pool.vfs {
+			vfs = append(vfs, vf)
+		}
+
+		dump["pools"].(map[string]interface{})[pool.name] = map[string]interface{}{
+			"pf_pci":            pool.cfg.PfPci,
+			"vf_range":          pool.cfg.VfRange,
+			"mask":              pool.cfg.Mask,
+			"mask_reason":       pool.cfg.MaskReason,
+			"required_features": pool.cfg.RequiredFeatures,
+			"numa":              pool.cfg.Numa,
+			"vf_count":          len(pool.vfs),
+			"vfs":               vfs,
+		}
+	}
+
+	// Collect PF information
+	pfMap := make(map[string]map[string]interface{})
+	for _, pool := range s.poolMap {
+		pfPCI := pool.pf
+		if _, exists := pfMap[pfPCI]; !exists {
+			pfMap[pfPCI] = map[string]interface{}{
+				"pools":     []string{},
+				"vf_count":  0,
+				"allocated": 0,
+				"masked":    0,
+				"available": 0,
+			}
+		}
+		pfMap[pfPCI]["pools"] = append(pfMap[pfPCI]["pools"].([]string), pool.name)
+		pfMap[pfPCI]["vf_count"] = pfMap[pfPCI]["vf_count"].(int) + len(pool.vfs)
+	}
+
+	// Collect VF information
+	vfDetails := make(map[string]map[string]interface{})
+	allocatedVFs := []string{}
+	maskedVFs := []string{}
+
+	// Collect all VFs from pools
+	for _, pool := range s.poolMap {
+		for vfPCI := range pool.vfs {
+			vfDetails[vfPCI] = map[string]interface{}{
+				"allocated": s.allocated[vfPCI],
+				"masked":    s.masked[vfPCI],
+				"pool":      s.vfToPool[vfPCI],
+			}
+			if s.allocated[vfPCI] {
+				allocatedVFs = append(allocatedVFs, vfPCI)
+			}
+			if s.masked[vfPCI] {
+				maskedVFs = append(maskedVFs, vfPCI)
+				vfDetails[vfPCI]["mask_reason"] = s.maskReason[vfPCI]
+			}
+		}
+	}
+
+	// Update statistics
+	totalVFs := len(s.allocated)
+	allocatedCount := len(allocatedVFs)
+	maskedCount := len(maskedVFs)
+	availableCount := totalVFs - allocatedCount - maskedCount
+
+	dump["allocations"].(map[string]interface{})["allocated_vfs"] = allocatedVFs
+	dump["allocations"].(map[string]interface{})["masked_vfs"] = maskedVFs
+	dump["virtual_functions"] = vfDetails
+	dump["physical_functions"] = pfMap
+
+	dump["statistics"].(map[string]interface{})["total_pfs"] = len(pfMap)
+	dump["statistics"].(map[string]interface{})["total_vfs"] = totalVFs
+	dump["statistics"].(map[string]interface{})["allocated_vfs"] = allocatedCount
+	dump["statistics"].(map[string]interface{})["masked_vfs"] = maskedCount
+	dump["statistics"].(map[string]interface{})["available_vfs"] = availableCount
+
+	// Convert to JSON
+	jsonData, err := json.MarshalIndent(dump, "", "  ")
+	if err != nil {
+		s.logger.WithError(err).Error("failed to marshal interface dump to JSON")
+		return nil, fmt.Errorf("failed to generate JSON dump: %v", err)
+	}
+
+	return &pb.InterfaceDump{
+		JsonData:  string(jsonData),
+		Timestamp: time.Now().Format(time.RFC3339),
+		Version:   "1.0.0",
+	}, nil
 }
 
 func main() {

@@ -1113,6 +1113,66 @@ func (x *PoolList) GetNames() []string {
 	return nil
 }
 
+type InterfaceDump struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JsonData      string                 `protobuf:"bytes,1,opt,name=json_data,json=jsonData,proto3" json:"json_data,omitempty"`
+	Timestamp     string                 `protobuf:"bytes,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Version       string                 `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InterfaceDump) Reset() {
+	*x = InterfaceDump{}
+	mi := &file_proto_sriov_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InterfaceDump) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InterfaceDump) ProtoMessage() {}
+
+func (x *InterfaceDump) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_sriov_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InterfaceDump.ProtoReflect.Descriptor instead.
+func (*InterfaceDump) Descriptor() ([]byte, []int) {
+	return file_proto_sriov_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *InterfaceDump) GetJsonData() string {
+	if x != nil {
+		return x.JsonData
+	}
+	return ""
+}
+
+func (x *InterfaceDump) GetTimestamp() string {
+	if x != nil {
+		return x.Timestamp
+	}
+	return ""
+}
+
+func (x *InterfaceDump) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
 var File_proto_sriov_proto protoreflect.FileDescriptor
 
 const file_proto_sriov_proto_rawDesc = "" +
@@ -1205,7 +1265,11 @@ const file_proto_sriov_proto_rawDesc = "" +
 	"\x11required_features\x18\x06 \x03(\tR\x10requiredFeatures\x12\x12\n" +
 	"\x04numa\x18\a \x01(\tR\x04numa\" \n" +
 	"\bPoolList\x12\x14\n" +
-	"\x05names\x18\x01 \x03(\tR\x05names2\xc3\x03\n" +
+	"\x05names\x18\x01 \x03(\tR\x05names\"d\n" +
+	"\rInterfaceDump\x12\x1b\n" +
+	"\tjson_data\x18\x01 \x01(\tR\bjsonData\x12\x1c\n" +
+	"\ttimestamp\x18\x02 \x01(\tR\ttimestamp\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\tR\aversion2\xf9\x03\n" +
 	"\x12SriovDeviceManager\x12.\n" +
 	"\vListDevices\x12\f.sriov.Empty\x1a\x11.sriov.DeviceList\x12B\n" +
 	"\vAllocateVFs\x12\x18.sriov.AllocationRequest\x1a\x19.sriov.AllocationResponse\x12;\n" +
@@ -1215,7 +1279,8 @@ const file_proto_sriov_proto_rawDesc = "" +
 	"\bUnmaskVF\x12\x14.sriov.UnmaskRequest\x1a\x15.sriov.UnmaskResponse\x12.\n" +
 	"\tGetStatus\x12\f.sriov.Empty\x1a\x13.sriov.StatusReport\x12*\n" +
 	"\tListPools\x12\f.sriov.Empty\x1a\x0f.sriov.PoolList\x124\n" +
-	"\rGetPoolConfig\x12\x10.sriov.PoolQuery\x1a\x11.sriov.PoolConfigB\x14Z\x12sriov-plugin/protob\x06proto3"
+	"\rGetPoolConfig\x12\x10.sriov.PoolQuery\x1a\x11.sriov.PoolConfig\x124\n" +
+	"\x0eDumpInterfaces\x12\f.sriov.Empty\x1a\x14.sriov.InterfaceDumpB\x14Z\x12sriov-plugin/protob\x06proto3"
 
 var (
 	file_proto_sriov_proto_rawDescOnce sync.Once
@@ -1229,7 +1294,7 @@ func file_proto_sriov_proto_rawDescGZIP() []byte {
 	return file_proto_sriov_proto_rawDescData
 }
 
-var file_proto_sriov_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_proto_sriov_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_proto_sriov_proto_goTypes = []any{
 	(*Empty)(nil),              // 0: sriov.Empty
 	(*VF)(nil),                 // 1: sriov.VF
@@ -1248,10 +1313,11 @@ var file_proto_sriov_proto_goTypes = []any{
 	(*PoolQuery)(nil),          // 14: sriov.PoolQuery
 	(*PoolConfig)(nil),         // 15: sriov.PoolConfig
 	(*PoolList)(nil),           // 16: sriov.PoolList
-	nil,                        // 17: sriov.VF.FeaturesEntry
+	(*InterfaceDump)(nil),      // 17: sriov.InterfaceDump
+	nil,                        // 18: sriov.VF.FeaturesEntry
 }
 var file_proto_sriov_proto_depIdxs = []int32{
-	17, // 0: sriov.VF.features:type_name -> sriov.VF.FeaturesEntry
+	18, // 0: sriov.VF.features:type_name -> sriov.VF.FeaturesEntry
 	1,  // 1: sriov.PF.vfs:type_name -> sriov.VF
 	2,  // 2: sriov.DeviceList.pfs:type_name -> sriov.PF
 	1,  // 3: sriov.AllocationResponse.allocated_vfs:type_name -> sriov.VF
@@ -1264,16 +1330,18 @@ var file_proto_sriov_proto_depIdxs = []int32{
 	0,  // 10: sriov.SriovDeviceManager.GetStatus:input_type -> sriov.Empty
 	0,  // 11: sriov.SriovDeviceManager.ListPools:input_type -> sriov.Empty
 	14, // 12: sriov.SriovDeviceManager.GetPoolConfig:input_type -> sriov.PoolQuery
-	3,  // 13: sriov.SriovDeviceManager.ListDevices:output_type -> sriov.DeviceList
-	5,  // 14: sriov.SriovDeviceManager.AllocateVFs:output_type -> sriov.AllocationResponse
-	7,  // 15: sriov.SriovDeviceManager.ReleaseVFs:output_type -> sriov.ReleaseResponse
-	9,  // 16: sriov.SriovDeviceManager.MaskVF:output_type -> sriov.MaskResponse
-	11, // 17: sriov.SriovDeviceManager.UnmaskVF:output_type -> sriov.UnmaskResponse
-	13, // 18: sriov.SriovDeviceManager.GetStatus:output_type -> sriov.StatusReport
-	16, // 19: sriov.SriovDeviceManager.ListPools:output_type -> sriov.PoolList
-	15, // 20: sriov.SriovDeviceManager.GetPoolConfig:output_type -> sriov.PoolConfig
-	13, // [13:21] is the sub-list for method output_type
-	5,  // [5:13] is the sub-list for method input_type
+	0,  // 13: sriov.SriovDeviceManager.DumpInterfaces:input_type -> sriov.Empty
+	3,  // 14: sriov.SriovDeviceManager.ListDevices:output_type -> sriov.DeviceList
+	5,  // 15: sriov.SriovDeviceManager.AllocateVFs:output_type -> sriov.AllocationResponse
+	7,  // 16: sriov.SriovDeviceManager.ReleaseVFs:output_type -> sriov.ReleaseResponse
+	9,  // 17: sriov.SriovDeviceManager.MaskVF:output_type -> sriov.MaskResponse
+	11, // 18: sriov.SriovDeviceManager.UnmaskVF:output_type -> sriov.UnmaskResponse
+	13, // 19: sriov.SriovDeviceManager.GetStatus:output_type -> sriov.StatusReport
+	16, // 20: sriov.SriovDeviceManager.ListPools:output_type -> sriov.PoolList
+	15, // 21: sriov.SriovDeviceManager.GetPoolConfig:output_type -> sriov.PoolConfig
+	17, // 22: sriov.SriovDeviceManager.DumpInterfaces:output_type -> sriov.InterfaceDump
+	14, // [14:23] is the sub-list for method output_type
+	5,  // [5:14] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
 	5,  // [5:5] is the sub-list for extension extendee
 	0,  // [0:5] is the sub-list for field type_name
@@ -1290,7 +1358,7 @@ func file_proto_sriov_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_sriov_proto_rawDesc), len(file_proto_sriov_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   18,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

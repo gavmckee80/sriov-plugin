@@ -13,6 +13,7 @@ service SriovDeviceManager {
   rpc GetStatus(Empty) returns (StatusReport);
   rpc ListPools(Empty) returns (PoolList);
   rpc GetPoolConfig(PoolQuery) returns (PoolConfig);
+  rpc DumpInterfaces(Empty) returns (InterfaceDump);
 }
 
 message Empty {}
@@ -123,4 +124,10 @@ message PoolConfig {
 
 message PoolList {
   repeated string names = 1;
+}
+
+message InterfaceDump {
+  string json_data = 1;
+  string timestamp = 2;
+  string version = 3;
 } 

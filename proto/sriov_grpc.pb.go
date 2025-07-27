@@ -19,14 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SriovDeviceManager_ListDevices_FullMethodName   = "/sriov.SriovDeviceManager/ListDevices"
-	SriovDeviceManager_AllocateVFs_FullMethodName   = "/sriov.SriovDeviceManager/AllocateVFs"
-	SriovDeviceManager_ReleaseVFs_FullMethodName    = "/sriov.SriovDeviceManager/ReleaseVFs"
-	SriovDeviceManager_MaskVF_FullMethodName        = "/sriov.SriovDeviceManager/MaskVF"
-	SriovDeviceManager_UnmaskVF_FullMethodName      = "/sriov.SriovDeviceManager/UnmaskVF"
-	SriovDeviceManager_GetStatus_FullMethodName     = "/sriov.SriovDeviceManager/GetStatus"
-	SriovDeviceManager_ListPools_FullMethodName     = "/sriov.SriovDeviceManager/ListPools"
-	SriovDeviceManager_GetPoolConfig_FullMethodName = "/sriov.SriovDeviceManager/GetPoolConfig"
+	SriovDeviceManager_ListDevices_FullMethodName    = "/sriov.SriovDeviceManager/ListDevices"
+	SriovDeviceManager_AllocateVFs_FullMethodName    = "/sriov.SriovDeviceManager/AllocateVFs"
+	SriovDeviceManager_ReleaseVFs_FullMethodName     = "/sriov.SriovDeviceManager/ReleaseVFs"
+	SriovDeviceManager_MaskVF_FullMethodName         = "/sriov.SriovDeviceManager/MaskVF"
+	SriovDeviceManager_UnmaskVF_FullMethodName       = "/sriov.SriovDeviceManager/UnmaskVF"
+	SriovDeviceManager_GetStatus_FullMethodName      = "/sriov.SriovDeviceManager/GetStatus"
+	SriovDeviceManager_ListPools_FullMethodName      = "/sriov.SriovDeviceManager/ListPools"
+	SriovDeviceManager_GetPoolConfig_FullMethodName  = "/sriov.SriovDeviceManager/GetPoolConfig"
+	SriovDeviceManager_DumpInterfaces_FullMethodName = "/sriov.SriovDeviceManager/DumpInterfaces"
 )
 
 // SriovDeviceManagerClient is the client API for SriovDeviceManager service.
@@ -41,6 +42,7 @@ type SriovDeviceManagerClient interface {
 	GetStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*StatusReport, error)
 	ListPools(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*PoolList, error)
 	GetPoolConfig(ctx context.Context, in *PoolQuery, opts ...grpc.CallOption) (*PoolConfig, error)
+	DumpInterfaces(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*InterfaceDump, error)
 }
 
 type sriovDeviceManagerClient struct {
@@ -131,6 +133,16 @@ func (c *sriovDeviceManagerClient) GetPoolConfig(ctx context.Context, in *PoolQu
 	return out, nil
 }
 
+func (c *sriovDeviceManagerClient) DumpInterfaces(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*InterfaceDump, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InterfaceDump)
+	err := c.cc.Invoke(ctx, SriovDeviceManager_DumpInterfaces_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SriovDeviceManagerServer is the server API for SriovDeviceManager service.
 // All implementations must embed UnimplementedSriovDeviceManagerServer
 // for forward compatibility.
@@ -143,6 +155,7 @@ type SriovDeviceManagerServer interface {
 	GetStatus(context.Context, *Empty) (*StatusReport, error)
 	ListPools(context.Context, *Empty) (*PoolList, error)
 	GetPoolConfig(context.Context, *PoolQuery) (*PoolConfig, error)
+	DumpInterfaces(context.Context, *Empty) (*InterfaceDump, error)
 	mustEmbedUnimplementedSriovDeviceManagerServer()
 }
 
@@ -176,6 +189,9 @@ func (UnimplementedSriovDeviceManagerServer) ListPools(context.Context, *Empty) 
 }
 func (UnimplementedSriovDeviceManagerServer) GetPoolConfig(context.Context, *PoolQuery) (*PoolConfig, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPoolConfig not implemented")
+}
+func (UnimplementedSriovDeviceManagerServer) DumpInterfaces(context.Context, *Empty) (*InterfaceDump, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DumpInterfaces not implemented")
 }
 func (UnimplementedSriovDeviceManagerServer) mustEmbedUnimplementedSriovDeviceManagerServer() {}
 func (UnimplementedSriovDeviceManagerServer) testEmbeddedByValue()                            {}
@@ -342,6 +358,24 @@ func _SriovDeviceManager_GetPoolConfig_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SriovDeviceManager_DumpInterfaces_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SriovDeviceManagerServer).DumpInterfaces(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SriovDeviceManager_DumpInterfaces_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SriovDeviceManagerServer).DumpInterfaces(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SriovDeviceManager_ServiceDesc is the grpc.ServiceDesc for SriovDeviceManager service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -380,6 +414,10 @@ var SriovDeviceManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPoolConfig",
 			Handler:    _SriovDeviceManager_GetPoolConfig_Handler,
+		},
+		{
+			MethodName: "DumpInterfaces",
+			Handler:    _SriovDeviceManager_DumpInterfaces_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

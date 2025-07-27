@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -258,6 +259,34 @@ func getPoolConfig(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func dumpInterfaces(cmd *cobra.Command, args []string) error {
+	client, conn, err := getClient()
+	if err != nil {
+		logger.WithError(err).Fatal("failed to connect to server")
+	}
+	defer conn.Close()
+
+	resp, err := client.DumpInterfaces(context.Background(), &pb.Empty{})
+	if err != nil {
+		logger.WithError(err).Fatal("failed to dump interfaces")
+	}
+
+	// Pretty print the JSON
+	var prettyJSON map[string]interface{}
+	if err := json.Unmarshal([]byte(resp.JsonData), &prettyJSON); err != nil {
+		logger.WithError(err).Fatal("failed to parse JSON response")
+	}
+
+	prettyBytes, err := json.MarshalIndent(prettyJSON, "", "  ")
+	if err != nil {
+		logger.WithError(err).Fatal("failed to format JSON")
+	}
+
+	fmt.Printf("Interface Dump (Version: %s, Timestamp: %s):\n", resp.Version, resp.Timestamp)
+	fmt.Println(string(prettyBytes))
+	return nil
+}
+
 func init() {
 	// Configure logrus
 	logger.SetFormatter(&logrus.TextFormatter{
@@ -340,4 +369,13 @@ func init() {
 		RunE:  getPoolConfig,
 	}
 	rootCmd.AddCommand(getPoolConfigCmd)
+
+	// Dump interfaces command
+	dumpCmd := &cobra.Command{
+		Use:   "dump",
+		Short: "Dump comprehensive interface information in JSON format",
+		Long:  "Get detailed information about all interfaces, pools, allocations, and statistics in JSON format",
+		RunE:  dumpInterfaces,
+	}
+	rootCmd.AddCommand(dumpCmd)
 }
