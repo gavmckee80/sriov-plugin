@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	pb "sriov-plugin/proto"
@@ -15,6 +17,61 @@ import (
 )
 
 var logger = logrus.New()
+
+// getInterfaceNameForVF attempts to find the interface name for a VF
+func getInterfaceNameForVF(vfPCI string) string {
+	// Extract PF PCI and VF number from VF PCI address
+	// Format: 0000:31:00.0-vf15 -> PF: 0000:31:00.0, VF: 15
+	if idx := strings.LastIndex(vfPCI, "-vf"); idx > 0 {
+		pfPCI := vfPCI[:idx]
+		vfNumStr := vfPCI[idx+3:] // Remove "-vf" prefix
+
+		// Look in PF's net directory for VF interfaces
+		netPath := fmt.Sprintf("/sys/bus/pci/devices/%s/net", pfPCI)
+
+		if entries, err := os.ReadDir(netPath); err == nil {
+			for _, entry := range entries {
+				if entry.IsDir() {
+					interfaceName := entry.Name()
+					// Check if this interface corresponds to our VF
+					// VF interfaces typically have patterns like:
+					// - ens60f0npf0vf15 (for VF 15)
+					// - eth100 (for VF 100)
+					if strings.Contains(interfaceName, fmt.Sprintf("vf%s", vfNumStr)) ||
+						(strings.HasPrefix(interfaceName, "eth") && len(interfaceName) > 3) {
+						// For eth interfaces, check if the number matches
+						if strings.HasPrefix(interfaceName, "eth") {
+							if ethNum, err := strconv.Atoi(interfaceName[3:]); err == nil {
+								if vfNum, err := strconv.Atoi(vfNumStr); err == nil && ethNum == vfNum {
+									return interfaceName
+								}
+							}
+						} else {
+							return interfaceName
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// If no interface found, return empty string
+	return ""
+}
+
+// formatVFName returns a user-friendly name for a VF
+func formatVFName(vfPCI string) string {
+	interfaceName := getInterfaceNameForVF(vfPCI)
+	if interfaceName != "" {
+		// Extract VF number from PCI address
+		if idx := strings.LastIndex(vfPCI, "-vf"); idx > 0 {
+			vfNum := vfPCI[idx+3:] // Remove "-vf" prefix
+			return fmt.Sprintf("%s vf %s", interfaceName, vfNum)
+		}
+	}
+	// Fallback to PCI address if no interface name found
+	return vfPCI
+}
 
 var rootCmd = &cobra.Command{
 	Use:   "sriovctl",
@@ -173,9 +230,9 @@ func maskVF(cmd *cobra.Command, args []string) error {
 	}
 
 	if resp.Success {
-		logger.WithField("vf", args[0]).Info("VF masked successfully")
+		logger.WithField("vf", formatVFName(args[0])).Info("VF masked successfully")
 	} else {
-		logger.WithField("vf", args[0]).Error("failed to mask VF")
+		logger.WithField("vf", formatVFName(args[0])).Error("failed to mask VF")
 	}
 	return nil
 }
@@ -201,9 +258,9 @@ func unmaskVF(cmd *cobra.Command, args []string) error {
 	}
 
 	if resp.Success {
-		logger.WithField("vf", args[0]).Info("VF unmasked successfully")
+		logger.WithField("vf", formatVFName(args[0])).Info("VF unmasked successfully")
 	} else {
-		logger.WithField("vf", args[0]).Error("failed to unmask VF")
+		logger.WithField("vf", formatVFName(args[0])).Error("failed to unmask VF")
 	}
 	return nil
 }

@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -41,6 +42,97 @@ type server struct {
 	logger     *logrus.Logger
 }
 
+// getInterfaceNameForVF attempts to find the interface name for a VF
+func getInterfaceNameForVF(vfPCI string) string {
+	// Extract PF PCI and VF number from VF PCI address
+	// Format: 0000:31:00.0-vf15 -> PF: 0000:31:00.0, VF: 15
+	if idx := strings.LastIndex(vfPCI, "-vf"); idx > 0 {
+		pfPCI := vfPCI[:idx]
+		vfNumStr := vfPCI[idx+3:] // Remove "-vf" prefix
+
+		// Look in PF's net directory for VF interfaces
+		netPath := fmt.Sprintf("/sys/bus/pci/devices/%s/net", pfPCI)
+
+		if entries, err := os.ReadDir(netPath); err == nil {
+			for _, entry := range entries {
+				if entry.IsDir() {
+					interfaceName := entry.Name()
+					// Check if this interface corresponds to our VF
+					// VF interfaces typically have patterns like:
+					// - ens60f0npf0vf15 (for VF 15)
+					// - eth100 (for VF 100)
+					if strings.Contains(interfaceName, fmt.Sprintf("vf%s", vfNumStr)) ||
+						(strings.HasPrefix(interfaceName, "eth") && len(interfaceName) > 3) {
+						// For eth interfaces, check if the number matches
+						if strings.HasPrefix(interfaceName, "eth") {
+							if ethNum, err := strconv.Atoi(interfaceName[3:]); err == nil {
+								if vfNum, err := strconv.Atoi(vfNumStr); err == nil && ethNum == vfNum {
+									return interfaceName
+								}
+							}
+						} else {
+							return interfaceName
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// If no interface found, return empty string
+	return ""
+}
+
+// getInterfaceNameForPF attempts to find the interface name for a PF
+func getInterfaceNameForPF(pfPCI string) string {
+	// Try to find interface name from sysfs
+	// Look in /sys/bus/pci/devices/{pf_pci}/net/
+	netPath := fmt.Sprintf("/sys/bus/pci/devices/%s/net", pfPCI)
+
+	if entries, err := os.ReadDir(netPath); err == nil {
+		for _, entry := range entries {
+			if entry.IsDir() {
+				return entry.Name()
+			}
+		}
+	}
+
+	// If no interface found, return empty string
+	return ""
+}
+
+// formatVFName returns a user-friendly name for a VF
+func formatVFName(vfPCI string) string {
+	interfaceName := getInterfaceNameForVF(vfPCI)
+	if interfaceName != "" {
+		// Extract VF number from PCI address
+		if idx := strings.LastIndex(vfPCI, "-vf"); idx > 0 {
+			vfNum := vfPCI[idx+3:] // Remove "-vf" prefix
+			return fmt.Sprintf("%s vf %s", interfaceName, vfNum)
+		}
+	}
+	// Fallback to PCI address if no interface name found
+	return vfPCI
+}
+
+// formatPFName returns a user-friendly name for a PF
+func formatPFName(pfPCI string) string {
+	// Try to find interface name from sysfs
+	// Look in /sys/bus/pci/devices/{pf_pci}/net/
+	netPath := fmt.Sprintf("/sys/bus/pci/devices/%s/net", pfPCI)
+
+	if entries, err := os.ReadDir(netPath); err == nil {
+		for _, entry := range entries {
+			if entry.IsDir() {
+				return entry.Name()
+			}
+		}
+	}
+
+	// Fallback to PCI address if no interface name found
+	return pfPCI
+}
+
 func (s *server) reloadConfig() {
 	cfg, err := config.LoadConfig(s.cfgPath)
 	if err != nil {
@@ -67,7 +159,7 @@ func (s *server) reloadConfig() {
 				s.masked[vfAddr] = true
 				s.maskReason[vfAddr] = pool.MaskReason
 				s.logger.WithFields(logrus.Fields{
-					"vf":     vfAddr,
+					"vf":     formatVFName(vfAddr),
 					"pool":   pool.Name,
 					"reason": pool.MaskReason,
 				}).Info("masked VF due to pool configuration")
@@ -365,12 +457,15 @@ func (s *server) DumpInterfaces(ctx context.Context, req *pb.Empty) (*pb.Interfa
 	for _, pool := range s.poolMap {
 		pfPCI := pool.pf
 		if _, exists := pfMap[pfPCI]; !exists {
+			interfaceName := getInterfaceNameForPF(pfPCI)
 			pfMap[pfPCI] = map[string]interface{}{
-				"pools":     []string{},
-				"vf_count":  0,
-				"allocated": 0,
-				"masked":    0,
-				"available": 0,
+				"pools":         []string{},
+				"vf_count":      0,
+				"allocated":     0,
+				"masked":        0,
+				"available":     0,
+				"interface":     interfaceName,
+				"friendly_name": formatPFName(pfPCI),
 			}
 		}
 		pfMap[pfPCI]["pools"] = append(pfMap[pfPCI]["pools"].([]string), pool.name)
@@ -385,10 +480,13 @@ func (s *server) DumpInterfaces(ctx context.Context, req *pb.Empty) (*pb.Interfa
 	// Collect all VFs from pools
 	for _, pool := range s.poolMap {
 		for vfPCI := range pool.vfs {
+			interfaceName := getInterfaceNameForVF(vfPCI)
 			vfDetails[vfPCI] = map[string]interface{}{
-				"allocated": s.allocated[vfPCI],
-				"masked":    s.masked[vfPCI],
-				"pool":      s.vfToPool[vfPCI],
+				"allocated":     s.allocated[vfPCI],
+				"masked":        s.masked[vfPCI],
+				"pool":          s.vfToPool[vfPCI],
+				"interface":     interfaceName,
+				"friendly_name": formatVFName(vfPCI),
 			}
 			if s.allocated[vfPCI] {
 				allocatedVFs = append(allocatedVFs, vfPCI)
