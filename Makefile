@@ -26,24 +26,12 @@ build-race: proto
 	go build -race $(LDFLAGS) -o $(BINARY_DIR)/$(CLIENT_BINARY) cmd/sriovctl/main.go
 	@echo "Race build complete!"
 
-# Build for different platforms
+# Build for Linux only
 build-linux: proto
 	@echo "Building for Linux..."
 	@mkdir -p $(BINARY_DIR)
 	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(BINARY_DIR)/$(DAEMON_BINARY)-linux-amd64 cmd/sriovd/main.go
 	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(BINARY_DIR)/$(CLIENT_BINARY)-linux-amd64 cmd/sriovctl/main.go
-
-build-darwin: proto
-	@echo "Building for macOS..."
-	@mkdir -p $(BINARY_DIR)
-	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o $(BINARY_DIR)/$(DAEMON_BINARY)-darwin-amd64 cmd/sriovd/main.go
-	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o $(BINARY_DIR)/$(CLIENT_BINARY)-darwin-amd64 cmd/sriovctl/main.go
-
-build-windows: proto
-	@echo "Building for Windows..."
-	@mkdir -p $(BINARY_DIR)
-	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o $(BINARY_DIR)/$(DAEMON_BINARY)-windows-amd64.exe cmd/sriovd/main.go
-	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o $(BINARY_DIR)/$(CLIENT_BINARY)-windows-amd64.exe cmd/sriovctl/main.go
 
 # Generate protobuf files
 proto:
@@ -145,8 +133,6 @@ help:
 	@echo "  build                    - Build both daemon and CLI (default)"
 	@echo "  build-race              - Build with race detection"
 	@echo "  build-linux             - Build for Linux"
-	@echo "  build-darwin            - Build for macOS"
-	@echo "  build-windows           - Build for Windows"
 	@echo "  proto                   - Generate protobuf files"
 	@echo "  clean                   - Remove build artifacts"
 	@echo "  test                    - Run all tests"
