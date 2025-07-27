@@ -1,0 +1,112 @@
+run:
+  timeout: 5m
+  go: "1.21"
+
+linters:
+  enable:
+    - gofmt
+    - goimports
+    - govet
+    - errcheck
+    - staticcheck
+    - gosimple
+    - ineffassign
+    - typecheck
+    - unused
+    - misspell
+    - gosec
+    - gocyclo
+    - dupl
+    - gocritic
+    - godot
+    - gomnd
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    - nakedret
+    - noctx
+    - nolintlint
+    - rowserrcheck
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
+
+linters-settings:
+  gocyclo:
+    min-complexity: 15
+  dupl:
+    threshold: 100
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+  gomnd:
+    checks: argument,case,condition,operation,return,assign
+  gosec:
+    excludes:
+      - G404 # Use of weak random number generator
+  govet:
+    check-shadowing: true
+  misspell:
+    locale: US
+  nolintlint:
+    allow-unused: false
+    require-explanation: false
+    require-specific: false
+  staticcheck:
+    go-toolchain: "1.21"
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gomnd
+        - gocyclo
+        - dupl
+    - path: proto/
+      linters:
+        - gofmt
+        - goimports
+        - govet
+        - staticcheck
+        - gosimple
+        - ineffassign
+        - typecheck
+        - unused
+        - misspell
+        - gosec
+        - gocyclo
+        - dupl
+        - gocritic
+        - godot
+        - gomnd
+        - goprintffuncname
+        - gosimple
+        - govet
+        - ineffassign
+        - misspell
+        - nakedret
+        - noctx
+        - nolintlint
+        - rowserrcheck
+        - staticcheck
+        - structcheck
+        - stylecheck
+        - typecheck
+        - unconvert
+        - unparam
+        - unused
+        - varcheck
+        - whitespace 
