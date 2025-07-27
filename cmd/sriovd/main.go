@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -15,6 +14,8 @@ import (
 
 	"sriov-plugin/internal/config"
 	pb "sriov-plugin/proto"
+
+	"github.com/sirupsen/logrus"
 
 	"google.golang.org/grpc"
 )
@@ -36,12 +37,13 @@ type server struct {
 	vfToPool   map[string]string
 	poolMap    map[string]*poolLabel
 	cfgPath    string
+	logger     *logrus.Logger
 }
 
 func (s *server) reloadConfig() {
 	cfg, err := config.LoadConfig(s.cfgPath)
 	if err != nil {
-		log.Printf("failed to reload config: %v", err)
+		s.logger.WithError(err).Error("failed to reload config")
 		return
 	}
 	s.mu.Lock()
@@ -55,7 +57,7 @@ func (s *server) reloadConfig() {
 		s.allowedPFs[pool.PfPCI] = true
 		vfIndices, err := config.ParseVFRange(pool.VFRange)
 		if err != nil {
-			log.Printf("invalid vf_range in pool %s: %v", pool.Name, err)
+			s.logger.WithError(err).WithField("pool", pool.Name).Error("invalid vf_range in pool")
 			continue
 		}
 		for _, vf := range vfIndices {
@@ -63,7 +65,11 @@ func (s *server) reloadConfig() {
 			if pool.Mask {
 				s.masked[vfAddr] = true
 				s.maskReason[vfAddr] = pool.MaskReason
-				log.Printf("masked VF %s due to pool %s (%s)", vfAddr, pool.Name, pool.MaskReason)
+				s.logger.WithFields(logrus.Fields{
+					"vf":     vfAddr,
+					"pool":   pool.Name,
+					"reason": pool.MaskReason,
+				}).Info("masked VF due to pool configuration")
 			}
 			s.tagVFWithPool(vfAddr, pool.Name, &pb.PoolConfig{
 				Name:             pool.Name,
@@ -76,7 +82,7 @@ func (s *server) reloadConfig() {
 			})
 		}
 	}
-	log.Println("config reloaded")
+	s.logger.Info("config reloaded")
 }
 
 func (s *server) tagVFWithPool(vfPCI, poolName string, cfg *pb.PoolConfig) {
@@ -318,6 +324,7 @@ func main() {
 		maskReason: make(map[string]string),
 		allowedPFs: make(map[string]bool),
 		cfgPath:    *configPath,
+		logger:     logrus.New(),
 	}
 	s.reloadConfig()
 
@@ -331,12 +338,12 @@ func main() {
 
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		s.logger.WithError(err).Fatal("failed to listen")
 	}
 	grpcServer := grpc.NewServer()
 	pb.RegisterSriovDeviceManagerServer(grpcServer, s)
-	log.Println("gRPC server started on :50051")
+	s.logger.Info("gRPC server started on :50051")
 	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		s.logger.WithError(err).Fatal("failed to serve")
 	}
 }

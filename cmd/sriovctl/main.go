@@ -4,28 +4,26 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	pb "sriov-plugin/proto"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 )
 
+var logger = logrus.New()
+
 var rootCmd = &cobra.Command{
 	Use:   "sriovctl",
-	Short: "SR-IOV device manager CLI",
-	Long:  `Manage and inspect SR-IOV network devices via gRPC.`,
+	Short: "SR-IOV management CLI",
+	Long:  `A command line interface for managing SR-IOV devices and pools.`,
 }
 
 func main() {
-	rootCmd.AddCommand(listCmd)
-	rootCmd.AddCommand(statusCmd)
-	rootCmd.AddCommand(allocateCmd)
-	rootCmd.AddCommand(releaseCmd)
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		logger.WithError(err).Fatal("command execution failed")
 		os.Exit(1)
 	}
 }
@@ -40,114 +38,306 @@ func getClient() (pb.SriovDeviceManagerClient, *grpc.ClientConn, error) {
 	return pb.NewSriovDeviceManagerClient(conn), conn, nil
 }
 
-var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List all devices and their VFs",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		client, conn, err := getClient()
-		if err != nil {
-			return err
+func listDevices(cmd *cobra.Command, args []string) error {
+	client, conn, err := getClient()
+	if err != nil {
+		logger.WithError(err).Fatal("failed to connect to server")
+	}
+	defer conn.Close()
+
+	resp, err := client.ListDevices(context.Background(), &pb.Empty{})
+	if err != nil {
+		logger.WithError(err).Fatal("failed to list devices")
+	}
+
+	for _, pf := range resp.Pfs {
+		fmt.Printf("PF %s ():\n", pf.PfPci)
+		for _, vf := range pf.Vfs {
+			fmt.Printf("  VF %s iface=%s allocated=%t masked=%t pool=%s\n",
+				vf.VfPci, vf.Interface, vf.Allocated, vf.Masked, vf.Pool)
 		}
-		defer conn.Close()
-		reply, err := client.ListDevices(context.Background(), &pb.Empty{})
-		if err != nil {
-			return err
-		}
-		for _, pf := range reply.Pfs {
-			fmt.Printf("PF %s (%s):\n", pf.PfPci, pf.Interface)
-			for _, vf := range pf.Vfs {
-				fmt.Printf("  VF %s iface=%s allocated=%v masked=%v pool=%s\n", vf.VfPci, vf.Interface, vf.Allocated, vf.Masked, vf.Pool)
-			}
-		}
-		return nil
-	},
+	}
+	return nil
 }
 
-var statusCmd = &cobra.Command{
-	Use:   "status",
-	Short: "Show allocation status per pool",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		client, conn, err := getClient()
-		if err != nil {
-			return err
-		}
-		defer conn.Close()
-		resp, err := client.GetStatus(context.Background(), &pb.Empty{})
-		if err != nil {
-			return err
-		}
-		for _, pool := range resp.Pools {
-			fmt.Printf("Pool: %s on PF %s\n", pool.Name, pool.PfPci)
-			fmt.Printf("  Total: %d  Allocated: %d  Masked: %d  Free: %d (%.1f%%)\n\n",
-				pool.Total, pool.Allocated, pool.Masked, pool.Free, pool.PercentFree)
-		}
-		return nil
-	},
+func getStatus(cmd *cobra.Command, args []string) error {
+	client, conn, err := getClient()
+	if err != nil {
+		logger.WithError(err).Fatal("failed to connect to server")
+	}
+	defer conn.Close()
+
+	resp, err := client.GetStatus(context.Background(), &pb.Empty{})
+	if err != nil {
+		logger.WithError(err).Fatal("failed to get status")
+	}
+
+	fmt.Println("Pool Status:")
+	for _, pool := range resp.Pools {
+		fmt.Printf("  %s: %d total, %d allocated, %d masked, %d free (%.1f%%)\n",
+			pool.Name, pool.Total, pool.Allocated, pool.Masked, pool.Free, pool.PercentFree)
+	}
+	return nil
 }
 
-var allocateCmd = &cobra.Command{
-	Use:   "allocate",
-	Short: "Allocate VFs from a PF",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if pf == "" || count <= 0 {
-			return fmt.Errorf("--pf and --count are required")
-		}
-		client, conn, err := getClient()
-		if err != nil {
-			return err
-		}
-		defer conn.Close()
-		req := &pb.AllocationRequest{
-			PfPci:            pf,
-			Count:            uint32(count),
-			NumaNode:         numa,
-			RequiredFeatures: strings.Split(features, ","),
-			DryRun:           dryRun,
-		}
-		resp, err := client.AllocateVFs(context.Background(), req)
-		if err != nil {
-			return err
-		}
-		fmt.Println(resp.Message)
-		for _, vf := range resp.AllocatedVfs {
-			fmt.Printf("Allocated VF: %s iface=%s\n", vf.VfPci, vf.Interface)
-		}
+func allocateVFs(cmd *cobra.Command, args []string) error {
+	pfPCI, _ := cmd.Flags().GetString("pf")
+	count, _ := cmd.Flags().GetInt("count")
+	numaNode, _ := cmd.Flags().GetString("numa")
+	requiredFeatures, _ := cmd.Flags().GetStringSlice("required-features")
+	dryRun, _ := cmd.Flags().GetBool("dry-run")
+
+	client, conn, err := getClient()
+	if err != nil {
+		logger.WithError(err).Fatal("failed to connect to server")
+	}
+	defer conn.Close()
+
+	req := &pb.AllocationRequest{
+		PfPci:            pfPCI,
+		Count:            uint32(count),
+		NumaNode:         numaNode,
+		RequiredFeatures: requiredFeatures,
+		DryRun:           dryRun,
+	}
+
+	resp, err := client.AllocateVFs(context.Background(), req)
+	if err != nil {
+		logger.WithError(err).Fatal("failed to allocate VFs")
+	}
+
+	if len(resp.AllocatedVfs) == 0 {
+		logger.Warn("no VFs were allocated")
 		return nil
-	},
+	}
+
+	fmt.Printf("Allocated %d VFs:\n", len(resp.AllocatedVfs))
+	for _, vf := range resp.AllocatedVfs {
+		fmt.Printf("  %s (pool: %s)\n", vf.VfPci, vf.Pool)
+	}
+	return nil
 }
 
-var releaseCmd = &cobra.Command{
-	Use:   "release",
-	Short: "Release previously allocated VFs",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 {
-			return fmt.Errorf("must provide one or more VF PCI addresses")
-		}
-		client, conn, err := getClient()
-		if err != nil {
-			return err
-		}
-		defer conn.Close()
-		req := &pb.ReleaseRequest{VfPcis: args}
-		resp, err := client.ReleaseVFs(context.Background(), req)
-		if err != nil {
-			return err
-		}
-		fmt.Println("Released:", strings.Join(resp.Released, ", "))
-		return nil
-	},
+func releaseVFs(cmd *cobra.Command, args []string) error {
+	if len(args) == 0 {
+		logger.Fatal("no VF PCI addresses provided")
+	}
+
+	client, conn, err := getClient()
+	if err != nil {
+		logger.WithError(err).Fatal("failed to connect to server")
+	}
+	defer conn.Close()
+
+	req := &pb.ReleaseRequest{
+		VfPcis: args,
+	}
+
+	resp, err := client.ReleaseVFs(context.Background(), req)
+	if err != nil {
+		logger.WithError(err).Fatal("failed to release VFs")
+	}
+
+	fmt.Printf("Released %d VFs:\n", len(resp.Released))
+	for _, vf := range resp.Released {
+		fmt.Printf("  %s\n", vf)
+	}
+	return nil
 }
 
-var pf string
-var count int
-var numa string
-var features string
-var dryRun bool
+func maskVF(cmd *cobra.Command, args []string) error {
+	if len(args) != 1 {
+		logger.Fatal("exactly one VF PCI address required")
+	}
+
+	reason, _ := cmd.Flags().GetString("reason")
+	if reason == "" {
+		logger.Fatal("reason is required for masking")
+	}
+
+	client, conn, err := getClient()
+	if err != nil {
+		logger.WithError(err).Fatal("failed to connect to server")
+	}
+	defer conn.Close()
+
+	req := &pb.MaskRequest{
+		VfPci:  args[0],
+		Reason: reason,
+	}
+
+	resp, err := client.MaskVF(context.Background(), req)
+	if err != nil {
+		logger.WithError(err).Fatal("failed to mask VF")
+	}
+
+	if resp.Success {
+		logger.WithField("vf", args[0]).Info("VF masked successfully")
+	} else {
+		logger.WithField("vf", args[0]).Error("failed to mask VF")
+	}
+	return nil
+}
+
+func unmaskVF(cmd *cobra.Command, args []string) error {
+	if len(args) != 1 {
+		logger.Fatal("exactly one VF PCI address required")
+	}
+
+	client, conn, err := getClient()
+	if err != nil {
+		logger.WithError(err).Fatal("failed to connect to server")
+	}
+	defer conn.Close()
+
+	req := &pb.UnmaskRequest{
+		VfPci: args[0],
+	}
+
+	resp, err := client.UnmaskVF(context.Background(), req)
+	if err != nil {
+		logger.WithError(err).Fatal("failed to unmask VF")
+	}
+
+	if resp.Success {
+		logger.WithField("vf", args[0]).Info("VF unmasked successfully")
+	} else {
+		logger.WithField("vf", args[0]).Error("failed to unmask VF")
+	}
+	return nil
+}
+
+func listPools(cmd *cobra.Command, args []string) error {
+	client, conn, err := getClient()
+	if err != nil {
+		logger.WithError(err).Fatal("failed to connect to server")
+	}
+	defer conn.Close()
+
+	resp, err := client.ListPools(context.Background(), &pb.Empty{})
+	if err != nil {
+		logger.WithError(err).Fatal("failed to list pools")
+	}
+
+	fmt.Println("Available pools:")
+	for _, name := range resp.Names {
+		fmt.Printf("  %s\n", name)
+	}
+	return nil
+}
+
+func getPoolConfig(cmd *cobra.Command, args []string) error {
+	if len(args) != 1 {
+		logger.Fatal("exactly one pool name required")
+	}
+
+	client, conn, err := getClient()
+	if err != nil {
+		logger.WithError(err).Fatal("failed to connect to server")
+	}
+	defer conn.Close()
+
+	req := &pb.PoolQuery{
+		Name: args[0],
+	}
+
+	resp, err := client.GetPoolConfig(context.Background(), req)
+	if err != nil {
+		logger.WithError(err).Fatal("failed to get pool config")
+	}
+
+	fmt.Printf("Pool: %s\n", resp.Name)
+	fmt.Printf("  PF PCI: %s\n", resp.PfPci)
+	fmt.Printf("  VF Range: %s\n", resp.VfRange)
+	fmt.Printf("  Masked: %t\n", resp.Mask)
+	if resp.Mask {
+		fmt.Printf("  Mask Reason: %s\n", resp.MaskReason)
+	}
+	fmt.Printf("  NUMA: %s\n", resp.Numa)
+	fmt.Printf("  Required Features: %v\n", resp.RequiredFeatures)
+	return nil
+}
 
 func init() {
-	allocateCmd.Flags().StringVar(&pf, "pf", "", "PF PCI address")
-	allocateCmd.Flags().IntVar(&count, "count", 0, "Number of VFs to allocate")
-	allocateCmd.Flags().StringVar(&numa, "numa", "", "NUMA node affinity (optional)")
-	allocateCmd.Flags().StringVar(&features, "features", "", "Comma-separated list of required features")
-	allocateCmd.Flags().BoolVar(&dryRun, "dry-run", false, "Simulate allocation without committing")
+	// Configure logrus
+	logger.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp: true,
+	})
+	logger.SetLevel(logrus.InfoLevel)
+
+	// List command
+	listCmd := &cobra.Command{
+		Use:   "list",
+		Short: "List all SR-IOV devices",
+		RunE:  listDevices,
+	}
+	rootCmd.AddCommand(listCmd)
+
+	// Status command
+	statusCmd := &cobra.Command{
+		Use:   "status",
+		Short: "Get status of all pools",
+		RunE:  getStatus,
+	}
+	rootCmd.AddCommand(statusCmd)
+
+	// Allocate command
+	allocateCmd := &cobra.Command{
+		Use:   "allocate",
+		Short: "Allocate VFs from a pool",
+		RunE:  allocateVFs,
+	}
+	allocateCmd.Flags().String("pf", "", "PF PCI address")
+	allocateCmd.Flags().Int("count", 1, "Number of VFs to allocate")
+	allocateCmd.Flags().String("numa", "", "NUMA node preference")
+	allocateCmd.Flags().StringSlice("required-features", []string{}, "Required features")
+	allocateCmd.Flags().Bool("dry-run", false, "Dry run mode")
+	allocateCmd.MarkFlagRequired("pf")
+	rootCmd.AddCommand(allocateCmd)
+
+	// Release command
+	releaseCmd := &cobra.Command{
+		Use:   "release [VF_PCI_ADDRESSES...]",
+		Short: "Release allocated VFs",
+		Args:  cobra.MinimumNArgs(1),
+		RunE:  releaseVFs,
+	}
+	rootCmd.AddCommand(releaseCmd)
+
+	// Mask command
+	maskCmd := &cobra.Command{
+		Use:   "mask [VF_PCI_ADDRESS]",
+		Short: "Mask a VF",
+		Args:  cobra.ExactArgs(1),
+		RunE:  maskVF,
+	}
+	maskCmd.Flags().String("reason", "", "Reason for masking")
+	maskCmd.MarkFlagRequired("reason")
+	rootCmd.AddCommand(maskCmd)
+
+	// Unmask command
+	unmaskCmd := &cobra.Command{
+		Use:   "unmask [VF_PCI_ADDRESS]",
+		Short: "Unmask a VF",
+		Args:  cobra.ExactArgs(1),
+		RunE:  unmaskVF,
+	}
+	rootCmd.AddCommand(unmaskCmd)
+
+	// List pools command
+	listPoolsCmd := &cobra.Command{
+		Use:   "pools",
+		Short: "List all pools",
+		RunE:  listPools,
+	}
+	rootCmd.AddCommand(listPoolsCmd)
+
+	// Get pool config command
+	getPoolConfigCmd := &cobra.Command{
+		Use:   "pool-config [POOL_NAME]",
+		Short: "Get configuration for a specific pool",
+		Args:  cobra.ExactArgs(1),
+		RunE:  getPoolConfig,
+	}
+	rootCmd.AddCommand(getPoolConfigCmd)
 }
