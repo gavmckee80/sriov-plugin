@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+package sriov;
+
+option go_package = "sriov-plugin/proto";
+
+service SriovDeviceManager {
+  rpc ListDevices(Empty) returns (DeviceList);
+  rpc AllocateVFs(AllocationRequest) returns (AllocationResponse);
+  rpc ReleaseVFs(ReleaseRequest) returns (ReleaseResponse);
+  rpc MaskVF(MaskRequest) returns (MaskResponse);
+  rpc UnmaskVF(UnmaskRequest) returns (UnmaskResponse);
+  rpc GetStatus(Empty) returns (StatusReport);
+  rpc ListPools(Empty) returns (PoolList);
+  rpc GetPoolConfig(PoolQuery) returns (PoolConfig);
+}
+
+message Empty {}
+
+message VF {
+  string vf_pci = 1;
+  string pf_pci = 2;
+  string interface = 3;
+  string representor = 4;
+  string numa_node = 5;
+  string link_state = 6;
+  string link_speed = 7;
+  bool allocated = 8;
+  bool masked = 9;
+  map<string, bool> features = 10;
+  uint32 rx_rings = 11;
+  uint32 tx_rings = 12;
+  uint32 rx_max = 13;
+  uint32 tx_max = 14;
+  uint32 rx_channels = 15;
+  uint32 tx_channels = 16;
+  string last_updated = 17;
+  string driver = 18;
+  string mode = 19;
+  string state = 20;
+  string pool = 21;
+}
+
+message PF {
+  string pf_pci = 1;
+  string interface = 2;
+  repeated VF vfs = 3;
+  string pool = 4;
+}
+
+message DeviceList {
+  repeated PF pfs = 1;
+}
+
+message AllocationRequest {
+  string pf_pci = 1;
+  uint32 count = 2;
+  string numa_node = 3;
+  repeated string required_features = 4;
+  bool dry_run = 5;
+}
+
+message AllocationResponse {
+  repeated VF allocated_vfs = 1;
+  string message = 2;
+}
+
+message ReleaseRequest {
+  repeated string vf_pcis = 1;
+}
+
+message ReleaseResponse {
+  repeated string released = 1;
+  string message = 2;
+}
+
+message MaskRequest {
+  string vf_pci = 1;
+  string reason = 2;
+}
+
+message MaskResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message UnmaskRequest {
+  string vf_pci = 1;
+}
+
+message UnmaskResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message PoolSummary {
+  string pf_pci = 1;
+  string name = 2;
+  uint32 total = 3;
+  uint32 allocated = 4;
+  uint32 masked = 5;
+  uint32 free = 6;
+  float percent_free = 7;
+}
+
+message StatusReport {
+  repeated PoolSummary pools = 1;
+}
+
+message PoolQuery {
+  string name = 1;
+}
+
+message PoolConfig {
+  string name = 1;
+  string pf_pci = 2;
+  string vf_range = 3;
+  bool mask = 4;
+  string mask_reason = 5;
+  repeated string required_features = 6;
+  string numa = 7;
+}
+
+message PoolList {
+  repeated string names = 1;
+} 

@@ -1,0 +1,22 @@
+pools:
+  - name: "high-performance"
+    pf_pci: "0000:31:00.0"
+    vf_range: "0-63"
+    mask: false
+    required_features: ["rx_checksum", "tx_checksum"]
+    numa: "0"
+  
+  - name: "reserved"
+    pf_pci: "0000:31:00.0"
+    vf_range: "64-95"
+    mask: true
+    mask_reason: "Reserved for future use"
+    required_features: []
+    numa: "0"
+  
+  - name: "backup"
+    pf_pci: "0000:31:00.1"
+    vf_range: "0-127"
+    mask: false
+    required_features: []
+    numa: "1" 
