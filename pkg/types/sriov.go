@@ -2,34 +2,36 @@ package types
 
 // PFInfo represents information about a Physical Function
 type PFInfo struct {
-	PCIAddress       string             `json:"pci_address"`
-	InterfaceName    string             `json:"interface_name"`
-	Driver           string             `json:"driver"`
-	TotalVFs         int                `json:"total_vfs"`
-	NumVFs           int                `json:"num_vfs"`
-	SRIOVEnabled     bool               `json:"sriov_enabled"`
-	NUMANode         string             `json:"numa_node"`
-	LinkState        string             `json:"link_state"`
-	LinkSpeed        string             `json:"link_speed"`
-	MTU              string             `json:"mtu"`
-	MACAddress       string             `json:"mac_address"`
-	Features         map[string]bool    `json:"features"`
-	Channels         map[string]int     `json:"channels"`
-	Rings            map[string]int     `json:"rings"`
-	Properties       map[string]string  `json:"properties"`
-	Capabilities     []PCICapability    `json:"capabilities"`
-	DeviceClass      string             `json:"device_class"`
-	Class            string             `json:"class"`
-	Description      string             `json:"description"`
-	VendorID         string             `json:"vendor_id"`
-	DeviceID         string             `json:"device_id"`
-	SubsysVendor     string             `json:"subsys_vendor"`
-	SubsysDevice     string             `json:"subsys_device"`
-	VendorName       string             `json:"vendor_name"`
-	DeviceName       string             `json:"device_name"`
-	SubsysVendorName string             `json:"subsys_vendor_name"`
-	SubsysDeviceName string             `json:"subsys_device_name"`
-	VFs              map[string]*VFInfo `json:"vfs"`
+	PCIAddress       string                      `json:"pci_address"`
+	InterfaceName    string                      `json:"interface_name"`
+	Driver           string                      `json:"driver"`
+	TotalVFs         int                         `json:"total_vfs"`
+	NumVFs           int                         `json:"num_vfs"`
+	SRIOVEnabled     bool                        `json:"sriov_enabled"`
+	NUMANode         string                      `json:"numa_node"`
+	LinkState        string                      `json:"link_state"`
+	LinkSpeed        string                      `json:"link_speed"`
+	MTU              string                      `json:"mtu"`
+	MACAddress       string                      `json:"mac_address"`
+	Features         map[string]bool             `json:"features"`
+	Channels         map[string]int              `json:"channels"`
+	Rings            map[string]int              `json:"rings"`
+	Properties       map[string]string           `json:"properties"`
+	Capabilities     []PCICapability             `json:"capabilities"`
+	DeviceClass      string                      `json:"device_class"`
+	Class            string                      `json:"class"`
+	Description      string                      `json:"description"`
+	VendorID         string                      `json:"vendor_id"`
+	DeviceID         string                      `json:"device_id"`
+	SubsysVendor     string                      `json:"subsys_vendor"`
+	SubsysDevice     string                      `json:"subsys_device"`
+	VendorName       string                      `json:"vendor_name"`
+	DeviceName       string                      `json:"device_name"`
+	SubsysVendorName string                      `json:"subsys_vendor_name"`
+	SubsysDeviceName string                      `json:"subsys_device_name"`
+	EswitchMode      string                      `json:"eswitch_mode"` // "switchdev", "legacy", or empty
+	VFs              map[string]*VFInfo          `json:"vfs"`
+	Representors     map[string]*RepresentorInfo `json:"representors"`
 }
 
 // VFInfo represents information about a Virtual Function
@@ -63,6 +65,38 @@ type VFInfo struct {
 	DeviceName       string            `json:"device_name"`
 	SubsysVendorName string            `json:"subsys_vendor_name"`
 	SubsysDeviceName string            `json:"subsys_device_name"`
+	Representor      *RepresentorInfo  `json:"representor"`
+}
+
+// RepresentorInfo represents information about a SR-IOV representor
+type RepresentorInfo struct {
+	InterfaceName    string            `json:"interface_name"`
+	PCIAddress       string            `json:"pci_address"`
+	Driver           string            `json:"driver"`
+	VFIndex          int               `json:"vf_index"`
+	PFPCIAddress     string            `json:"pf_pci_address"`
+	LinkState        string            `json:"link_state"`
+	LinkSpeed        string            `json:"link_speed"`
+	NUMANode         string            `json:"numa_node"`
+	MTU              string            `json:"mtu"`
+	MACAddress       string            `json:"mac_address"`
+	Features         map[string]bool   `json:"features"`
+	Channels         map[string]int    `json:"channels"`
+	Rings            map[string]int    `json:"rings"`
+	Properties       map[string]string `json:"properties"`
+	DeviceClass      string            `json:"device_class"`
+	Class            string            `json:"class"`
+	Description      string            `json:"description"`
+	VendorID         string            `json:"vendor_id"`
+	DeviceID         string            `json:"device_id"`
+	SubsysVendor     string            `json:"subsys_vendor"`
+	SubsysDevice     string            `json:"subsys_device"`
+	VendorName       string            `json:"vendor_name"`
+	DeviceName       string            `json:"device_name"`
+	SubsysVendorName string            `json:"subsys_vendor_name"`
+	SubsysDeviceName string            `json:"subsys_device_name"`
+	AssociatedVF     string            `json:"associated_vf"`
+	RepresentorType  string            `json:"representor_type"` // "switchdev", "legacy", etc.
 }
 
 // PCICapability represents a PCI capability
@@ -76,6 +110,7 @@ type PCICapability struct {
 
 // SRIOVData represents the complete SR-IOV device information
 type SRIOVData struct {
-	PhysicalFunctions map[string]*PFInfo `json:"physical_functions"`
-	VirtualFunctions  map[string]*VFInfo `json:"virtual_functions"`
+	PhysicalFunctions map[string]*PFInfo          `json:"physical_functions"`
+	VirtualFunctions  map[string]*VFInfo          `json:"virtual_functions"`
+	Representors      map[string]*RepresentorInfo `json:"representors"`
 }

@@ -1,3 +1,35 @@
+# SR-IOV Plugin Configuration
+# This file configures the SR-IOV device discovery and management
+
+# Discovery configuration
+discovery:
+  # List of vendor IDs to discover and manage
+  # If empty, all vendors are allowed
+  # Common vendor IDs:
+  #   0x15b3 - Mellanox Technologies
+  #   0x8086 - Intel Corporation
+  #   0x1dd8 - Pensando Systems
+  #   0x10df - Emulex Corporation
+  #   0x1077 - QLogic Corp
+  #   0x14e4 - Broadcom Inc
+  #   0x1924 - Solarflare Communications
+  #   0x19e5 - Huawei Technologies Co., Ltd
+  allowed_vendor_ids:
+    - "0x15b3"  # Mellanox Technologies
+    - "0x8086"  # Intel Corporation
+    - "0x1dd8"  # Pensando Systems
+  
+  # List of vendor IDs to exclude from discovery
+  # This takes precedence over allowed_vendor_ids
+  excluded_vendor_ids: []
+  
+  # Enable/disable representor discovery
+  enable_representor_discovery: true
+  
+  # Enable/disable switchdev mode checking
+  enable_switchdev_mode_check: true
+
+# VF Pool configurations
 pools:
   - name: "high-performance"
     pf_pci: "0000:31:00.0"

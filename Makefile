@@ -14,7 +14,7 @@ all: build
 build: proto
 	@echo "Building SR-IOV management tools (version: $(VERSION))..."
 	@mkdir -p $(BINARY_DIR)
-	go build $(LDFLAGS) -o $(BINARY_DIR)/$(DAEMON_BINARY) cmd/sriovd/main.go
+	go build $(LDFLAGS) -o $(BINARY_DIR)/$(DAEMON_BINARY) ./cmd/sriovd
 	go build $(LDFLAGS) -o $(BINARY_DIR)/$(CLIENT_BINARY) cmd/sriovctl/main.go
 	@echo "Build complete!"
 
@@ -22,7 +22,7 @@ build: proto
 build-race: proto
 	@echo "Building with race detection..."
 	@mkdir -p $(BINARY_DIR)
-	go build -race $(LDFLAGS) -o $(BINARY_DIR)/$(DAEMON_BINARY) cmd/sriovd/main.go
+	go build -race $(LDFLAGS) -o $(BINARY_DIR)/$(DAEMON_BINARY) ./cmd/sriovd
 	go build -race $(LDFLAGS) -o $(BINARY_DIR)/$(CLIENT_BINARY) cmd/sriovctl/main.go
 	@echo "Race build complete!"
 
@@ -30,7 +30,7 @@ build-race: proto
 build-linux: proto
 	@echo "Building for Linux..."
 	@mkdir -p $(BINARY_DIR)
-	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(BINARY_DIR)/$(DAEMON_BINARY)-linux-amd64 cmd/sriovd/main.go
+	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(BINARY_DIR)/$(DAEMON_BINARY)-linux-amd64 ./cmd/sriovd
 	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(BINARY_DIR)/$(CLIENT_BINARY)-linux-amd64 cmd/sriovctl/main.go
 
 # Generate protobuf files

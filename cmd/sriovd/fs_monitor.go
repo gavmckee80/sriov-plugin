@@ -35,14 +35,14 @@ func newFSMonitor(s *server) (*fsMonitor, error) {
 
 // start begins monitoring SR-IOV sysfs directories
 func (fm *fsMonitor) start() error {
-	fm.logger.Info("Starting file system monitoring for SR-IOV changes")
+	fm.logger.Info("Starting optimized file system monitoring for SR-IOV changes")
 
-	// Watch the main PCI devices directory
+	// Watch the main PCI devices directory for new devices
 	if err := fm.watcher.Add("/sys/bus/pci/devices"); err != nil {
 		return err
 	}
 
-	// Watch existing SR-IOV capable devices
+	// Watch existing SR-IOV capable devices (PFs only)
 	if err := fm.watchExistingSRIOVDevices(); err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func (fm *fsMonitor) stop() {
 	fm.watcher.Close()
 }
 
-// watchExistingSRIOVDevices adds watches for existing SR-IOV capable devices
+// watchExistingSRIOVDevices adds watches for existing SR-IOV capable devices (PFs only)
 func (fm *fsMonitor) watchExistingSRIOVDevices() error {
 	devices, err := filepath.Glob("/sys/bus/pci/devices/*")
 	if err != nil {
@@ -73,16 +73,198 @@ func (fm *fsMonitor) watchExistingSRIOVDevices() error {
 		// Check if device supports SR-IOV
 		sriovTotalPath := filepath.Join(device, "sriov_totalvfs")
 		if _, err := os.Stat(sriovTotalPath); err == nil {
-			// Watch the device directory for changes
-			if err := fm.watcher.Add(device); err != nil {
-				fm.logger.WithError(err).WithField("device", device).Warn("failed to watch device")
-			} else {
-				fm.logger.WithField("device", pciAddr).Debug("added watch for SR-IOV device")
+			// Get vendor and device IDs for filtering
+			vendorID := getVendorID(pciAddr)
+			deviceID := getDeviceID(pciAddr)
+			interfaceName := getInterfaceName(pciAddr)
+			vendorInfo := getPCIVendorDeviceInfo(vendorID, deviceID, getSubsysVendor(pciAddr), getSubsysDevice(pciAddr))
+
+			// Check if vendor is allowed based on configuration
+			if fm.server.config != nil && !fm.server.config.IsVendorAllowed(vendorID) {
+				fm.logger.WithFields(logrus.Fields{
+					"device":      pciAddr,
+					"interface":   interfaceName,
+					"vendor_id":   vendorID,
+					"vendor_name": vendorInfo.VendorName,
+					"device_id":   deviceID,
+					"device_name": vendorInfo.DeviceName,
+				}).Debug("skipping file system watch - vendor not allowed")
+				continue
+			}
+
+			// Watch only the specific files that can change in the PF directory
+			if err := fm.watchPFDirectory(device, pciAddr); err != nil {
+				fm.logger.WithError(err).WithField("device", device).Warn("failed to watch PF directory")
 			}
 		}
 	}
 
 	return nil
+}
+
+// watchPFDirectory watches only the specific files in a PF directory that can change
+func (fm *fsMonitor) watchPFDirectory(devicePath, pciAddr string) error {
+	// Get device information for enhanced logging
+	interfaceName := getInterfaceName(pciAddr)
+	vendorID := getVendorID(pciAddr)
+	deviceID := getDeviceID(pciAddr)
+	vendorInfo := getPCIVendorDeviceInfo(vendorID, deviceID, getSubsysVendor(pciAddr), getSubsysDevice(pciAddr))
+
+	// Watch the PF directory itself for new VF directories being created/removed
+	if err := fm.watcher.Add(devicePath); err != nil {
+		return err
+	}
+	fm.logger.WithFields(logrus.Fields{
+		"device":      pciAddr,
+		"interface":   interfaceName,
+		"vendor_id":   vendorID,
+		"vendor_name": vendorInfo.VendorName,
+		"device_id":   deviceID,
+		"device_name": vendorInfo.DeviceName,
+	}).Debug("added watch for PF directory")
+
+	// Watch specific files that can change in the PF
+	criticalFiles := []string{
+		"sriov_numvfs",   // Number of VFs enabled
+		"sriov_totalvfs", // Total VFs supported (can change on driver reload)
+	}
+
+	for _, file := range criticalFiles {
+		filePath := filepath.Join(devicePath, file)
+		if err := fm.watcher.Add(filePath); err != nil {
+			fm.logger.WithError(err).WithFields(logrus.Fields{
+				"device":      pciAddr,
+				"interface":   interfaceName,
+				"vendor_id":   vendorID,
+				"vendor_name": vendorInfo.VendorName,
+				"device_id":   deviceID,
+				"device_name": vendorInfo.DeviceName,
+				"file":        file,
+			}).Warn("failed to watch critical file")
+		} else {
+			fm.logger.WithFields(logrus.Fields{
+				"device":      pciAddr,
+				"interface":   interfaceName,
+				"vendor_id":   vendorID,
+				"vendor_name": vendorInfo.VendorName,
+				"device_id":   deviceID,
+				"device_name": vendorInfo.DeviceName,
+				"file":        file,
+			}).Debug("added watch for critical file")
+		}
+	}
+
+	// Watch the network interface directory for eswitch mode changes (only for PFs)
+	if err := fm.watchPFNetworkInterface(pciAddr); err != nil {
+		fm.logger.WithError(err).WithFields(logrus.Fields{
+			"device":      pciAddr,
+			"interface":   interfaceName,
+			"vendor_id":   vendorID,
+			"vendor_name": vendorInfo.VendorName,
+			"device_id":   deviceID,
+			"device_name": vendorInfo.DeviceName,
+		}).Warn("failed to watch PF network interface")
+	}
+
+	return nil
+}
+
+// watchPFNetworkInterface watches only the PF network interface for eswitch mode changes
+func (fm *fsMonitor) watchPFNetworkInterface(pciAddr string) error {
+	// Get device information for enhanced logging
+	vendorID := getVendorID(pciAddr)
+	deviceID := getDeviceID(pciAddr)
+	vendorInfo := getPCIVendorDeviceInfo(vendorID, deviceID, getSubsysVendor(pciAddr), getSubsysDevice(pciAddr))
+
+	// Get the network interface name for this PCI device
+	netPath := filepath.Join("/sys/bus/pci/devices", pciAddr, "net")
+
+	entries, err := os.ReadDir(netPath)
+	if err != nil {
+		// No network interface found for this device
+		return nil
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			interfaceName := entry.Name()
+
+			// Only watch the main PF interface, not VF interfaces or representors
+			if !fm.isVFOrRepresentorInterface(interfaceName) {
+				interfacePath := filepath.Join("/sys/class/net", interfaceName)
+
+				// Watch the interface directory for eswitch mode changes
+				if err := fm.watcher.Add(interfacePath); err != nil {
+					fm.logger.WithError(err).WithFields(logrus.Fields{
+						"device":      pciAddr,
+						"interface":   interfaceName,
+						"vendor_id":   vendorID,
+						"vendor_name": vendorInfo.VendorName,
+						"device_id":   deviceID,
+						"device_name": vendorInfo.DeviceName,
+					}).Warn("failed to watch PF network interface")
+				} else {
+					fm.logger.WithFields(logrus.Fields{
+						"device":      pciAddr,
+						"interface":   interfaceName,
+						"vendor_id":   vendorID,
+						"vendor_name": vendorInfo.VendorName,
+						"device_id":   deviceID,
+						"device_name": vendorInfo.DeviceName,
+					}).Debug("added watch for PF network interface")
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// isVFOrRepresentorInterface checks if an interface name indicates it's a VF or representor
+func (fm *fsMonitor) isVFOrRepresentorInterface(interfaceName string) bool {
+	// VF interfaces typically contain 'v' followed by a number
+	if strings.Contains(interfaceName, "v") && fm.hasVFPattern(interfaceName) {
+		return true
+	}
+
+	// Representor interfaces typically contain 'pf' and 'vf' patterns
+	if strings.Contains(interfaceName, "pf") && strings.Contains(interfaceName, "vf") {
+		return true
+	}
+
+	// Simple representor interfaces like eth100, eth101, etc.
+	if strings.HasPrefix(interfaceName, "eth") && fm.isNumericSuffix(interfaceName[3:]) {
+		return true
+	}
+
+	return false
+}
+
+// hasVFPattern checks if interface name has VF pattern (e.g., ens60f0v0, enp70s0v0)
+func (fm *fsMonitor) hasVFPattern(interfaceName string) bool {
+	// Look for patterns like 'v0', 'v1', 'v10', etc.
+	for i := 0; i < len(interfaceName)-1; i++ {
+		if interfaceName[i] == 'v' {
+			// Check if the next character is a digit
+			if i+1 < len(interfaceName) && interfaceName[i+1] >= '0' && interfaceName[i+1] <= '9' {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// isNumericSuffix checks if a string is numeric
+func (fm *fsMonitor) isNumericSuffix(s string) bool {
+	if s == "" {
+		return false
+	}
+	for _, r := range s {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 // processEvents handles file system events
@@ -112,6 +294,8 @@ func (fm *fsMonitor) handleEvent(event fsnotify.Event) {
 
 	// Handle both device directories and files within device directories
 	var pciAddr string
+	var interfaceName string
+
 	if strings.Contains(devicePath, "/sys/bus/pci/devices/") {
 		// Extract PCI address from the path
 		parts := strings.Split(devicePath, "/sys/bus/pci/devices/")
@@ -122,6 +306,22 @@ func (fm *fsMonitor) handleEvent(event fsnotify.Event) {
 			if len(deviceParts) > 0 {
 				pciAddr = deviceParts[0]
 			}
+		}
+	} else if strings.Contains(devicePath, "/sys/class/net/") {
+		// Handle network interface events
+		parts := strings.Split(devicePath, "/sys/class/net/")
+		if len(parts) > 1 {
+			interfacePart := parts[1]
+			// Split by '/' to get the interface name (first part)
+			interfaceParts := strings.Split(interfacePart, "/")
+			if len(interfaceParts) > 0 {
+				interfaceName = interfaceParts[0]
+			}
+		}
+
+		// For network interface events, find the associated PCI device
+		if interfaceName != "" {
+			pciAddr = fm.getPCIAddressForInterface(interfaceName)
 		}
 	}
 
@@ -156,6 +356,15 @@ func (fm *fsMonitor) isSRIOVEvent(event fsnotify.Event) bool {
 		return true
 	}
 
+	// Check for eswitch mode changes (only on PF interfaces)
+	if strings.HasSuffix(event.Name, "eswitch_mode") {
+		// Only trigger if this is a PF interface, not VF or representor
+		interfaceName := fm.extractInterfaceName(event.Name)
+		if interfaceName != "" && !fm.isVFOrRepresentorInterface(interfaceName) {
+			return true
+		}
+	}
+
 	// Check for new device directories (new PCI devices)
 	if event.Op&fsnotify.Create == fsnotify.Create {
 		// Check if the new directory has SR-IOV capabilities
@@ -166,6 +375,21 @@ func (fm *fsMonitor) isSRIOVEvent(event fsnotify.Event) bool {
 	}
 
 	return false
+}
+
+// extractInterfaceName extracts interface name from a sysfs path
+func (fm *fsMonitor) extractInterfaceName(path string) string {
+	if strings.Contains(path, "/sys/class/net/") {
+		parts := strings.Split(path, "/sys/class/net/")
+		if len(parts) > 1 {
+			interfacePart := parts[1]
+			interfaceParts := strings.Split(interfacePart, "/")
+			if len(interfaceParts) > 0 {
+				return interfaceParts[0]
+			}
+		}
+	}
+	return ""
 }
 
 // debouncedRediscovery performs rediscovery with debouncing to avoid rapid updates
@@ -185,6 +409,26 @@ func (fm *fsMonitor) debouncedRediscovery(pciAddr string) {
 
 // addDeviceWatch adds a watch for a specific device
 func (fm *fsMonitor) addDeviceWatch(pciAddr string) error {
+	// Check if vendor is allowed based on configuration
+	if fm.server.config != nil {
+		vendorID := getVendorID(pciAddr)
+		if !fm.server.config.IsVendorAllowed(vendorID) {
+			deviceID := getDeviceID(pciAddr)
+			interfaceName := getInterfaceName(pciAddr)
+			vendorInfo := getPCIVendorDeviceInfo(vendorID, deviceID, getSubsysVendor(pciAddr), getSubsysDevice(pciAddr))
+
+			fm.logger.WithFields(logrus.Fields{
+				"device":      pciAddr,
+				"interface":   interfaceName,
+				"vendor_id":   vendorID,
+				"vendor_name": vendorInfo.VendorName,
+				"device_id":   deviceID,
+				"device_name": vendorInfo.DeviceName,
+			}).Debug("skipping dynamic device watch - vendor not allowed")
+			return nil // Don't add watch for disallowed vendors
+		}
+	}
+
 	devicePath := filepath.Join("/sys/bus/pci/devices", pciAddr)
 	return fm.watcher.Add(devicePath)
 }
@@ -193,4 +437,23 @@ func (fm *fsMonitor) addDeviceWatch(pciAddr string) error {
 func (fm *fsMonitor) removeDeviceWatch(pciAddr string) error {
 	devicePath := filepath.Join("/sys/bus/pci/devices", pciAddr)
 	return fm.watcher.Remove(devicePath)
+}
+
+// getPCIAddressForInterface gets the PCI address for a network interface
+func (fm *fsMonitor) getPCIAddressForInterface(interfaceName string) string {
+	// Look for PCI address in /sys/class/net/{interface}/device
+	devicePath := filepath.Join("/sys/class/net", interfaceName, "device")
+	if _, err := os.Stat(devicePath); err == nil {
+		// Read the symlink to get PCI address
+		if link, err := os.Readlink(devicePath); err == nil {
+			// Extract PCI address from the symlink path
+			parts := strings.Split(link, "/")
+			for i, part := range parts {
+				if part == "devices" && i+1 < len(parts) {
+					return parts[i+1]
+				}
+			}
+		}
+	}
+	return ""
 }

@@ -81,6 +81,15 @@ func TestParseVFRange(t *testing.T) {
 func TestLoadConfig(t *testing.T) {
 	// Create a temporary config file
 	configContent := `
+discovery:
+  allowed_vendor_ids:
+    - "0x15b3"
+    - "0x8086"
+  excluded_vendor_ids:
+    - "0x1234"
+  enable_representor_discovery: true
+  enable_switchdev_mode_check: true
+
 pools:
   - name: "test-pool"
     pf_pci: "0000:01:00.0"
@@ -113,6 +122,20 @@ pools:
 	config, err := LoadConfig(tmpfile.Name())
 	if err != nil {
 		t.Fatalf("LoadConfig() error = %v", err)
+	}
+
+	// Check discovery configuration
+	if len(config.Discovery.AllowedVendorIDs) != 2 {
+		t.Errorf("Expected 2 allowed vendor IDs, got %d", len(config.Discovery.AllowedVendorIDs))
+	}
+	if len(config.Discovery.ExcludedVendorIDs) != 1 {
+		t.Errorf("Expected 1 excluded vendor ID, got %d", len(config.Discovery.ExcludedVendorIDs))
+	}
+	if !config.Discovery.EnableRepresentorDiscovery {
+		t.Error("Expected representor discovery to be enabled")
+	}
+	if !config.Discovery.EnableSwitchdevModeCheck {
+		t.Error("Expected switchdev mode check to be enabled")
 	}
 
 	if len(config.Pools) != 2 {
@@ -186,5 +209,51 @@ pools:
 	_, err = LoadConfig(tmpfile.Name())
 	if err == nil {
 		t.Error("Expected error when loading invalid YAML")
+	}
+}
+
+func TestIsVendorAllowed(t *testing.T) {
+	// Test with empty configuration (allow all)
+	config := &Config{}
+
+	if !config.IsVendorAllowed("0x15b3") {
+		t.Error("Expected vendor 0x15b3 to be allowed with empty config")
+	}
+	if !config.IsVendorAllowed("0x8086") {
+		t.Error("Expected vendor 0x8086 to be allowed with empty config")
+	}
+
+	// Test with allowed vendor IDs
+	config.Discovery.AllowedVendorIDs = []string{"0x15b3", "0x8086"}
+
+	if !config.IsVendorAllowed("0x15b3") {
+		t.Error("Expected vendor 0x15b3 to be allowed")
+	}
+	if !config.IsVendorAllowed("0x8086") {
+		t.Error("Expected vendor 0x8086 to be allowed")
+	}
+	if config.IsVendorAllowed("0x1234") {
+		t.Error("Expected vendor 0x1234 to be disallowed")
+	}
+
+	// Test with excluded vendor IDs
+	config.Discovery.ExcludedVendorIDs = []string{"0x15b3"}
+
+	if config.IsVendorAllowed("0x15b3") {
+		t.Error("Expected vendor 0x15b3 to be excluded")
+	}
+	if !config.IsVendorAllowed("0x8086") {
+		t.Error("Expected vendor 0x8086 to be allowed")
+	}
+
+	// Test with both allowed and excluded (excluded takes precedence)
+	config.Discovery.AllowedVendorIDs = []string{"0x15b3", "0x8086"}
+	config.Discovery.ExcludedVendorIDs = []string{"0x15b3"}
+
+	if config.IsVendorAllowed("0x15b3") {
+		t.Error("Expected vendor 0x15b3 to be excluded (excluded takes precedence)")
+	}
+	if !config.IsVendorAllowed("0x8086") {
+		t.Error("Expected vendor 0x8086 to be allowed")
 	}
 }

@@ -11,7 +11,25 @@ import (
 
 // Config represents the SR-IOV configuration
 type Config struct {
-	Pools []Pool `yaml:"pools"`
+	Discovery DiscoveryConfig `yaml:"discovery"`
+	Pools     []Pool          `yaml:"pools"`
+}
+
+// DiscoveryConfig represents discovery configuration options
+type DiscoveryConfig struct {
+	// AllowedVendorIDs is a list of vendor IDs to discover and manage
+	// If empty, all vendors are allowed
+	AllowedVendorIDs []string `yaml:"allowed_vendor_ids"`
+
+	// ExcludedVendorIDs is a list of vendor IDs to exclude from discovery
+	// This takes precedence over AllowedVendorIDs
+	ExcludedVendorIDs []string `yaml:"excluded_vendor_ids"`
+
+	// EnableRepresentorDiscovery enables/disables representor discovery
+	EnableRepresentorDiscovery bool `yaml:"enable_representor_discovery"`
+
+	// EnableSwitchdevModeCheck enables/disables switchdev mode checking
+	EnableSwitchdevModeCheck bool `yaml:"enable_switchdev_mode_check"`
 }
 
 // Pool represents a VF pool configuration
@@ -75,4 +93,37 @@ func ParseVFRange(rangeStr string) ([]int, error) {
 	}
 
 	return indices, nil
+}
+
+// IsVendorAllowed checks if a vendor ID is allowed based on the discovery configuration
+func (c *Config) IsVendorAllowed(vendorID string) bool {
+	// If no discovery config, allow all vendors
+	if len(c.Discovery.AllowedVendorIDs) == 0 && len(c.Discovery.ExcludedVendorIDs) == 0 {
+		return true
+	}
+
+	// Check if vendor is explicitly excluded
+	for _, excludedID := range c.Discovery.ExcludedVendorIDs {
+		if vendorID == excludedID {
+			return false
+		}
+	}
+
+	// If allowed vendor IDs are specified, check if vendor is in the list
+	if len(c.Discovery.AllowedVendorIDs) > 0 {
+		for _, allowedID := range c.Discovery.AllowedVendorIDs {
+			if vendorID == allowedID {
+				return true
+			}
+		}
+		return false
+	}
+
+	// If no allowed vendors specified but vendor is not excluded, allow it
+	return true
+}
+
+// GetDiscoveryConfig returns the discovery configuration
+func (c *Config) GetDiscoveryConfig() DiscoveryConfig {
+	return c.Discovery
 }

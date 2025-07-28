@@ -39,6 +39,7 @@ func (s *server) discoverSRIOVDevices() error {
 
 	s.sriovCache.pfs = make(map[string]*types.PFInfo)
 	s.sriovCache.vfs = make(map[string]*types.VFInfo)
+	s.sriovCache.representors = make(map[string]*types.RepresentorInfo)
 
 	s.logger.Info("Starting SR-IOV device discovery")
 
@@ -77,8 +78,6 @@ func (s *server) discoverSRIOVDevices() error {
 			continue
 		}
 
-		s.logger.WithField("pci", pciAddr).Debug("found SR-IOV capable device")
-
 		// Read total VFs
 		totalVFsData, err := os.ReadFile(sriovTotalPath)
 		if err != nil {
@@ -113,6 +112,30 @@ func (s *server) discoverSRIOVDevices() error {
 		// Get PF interface name
 		pfInterface := getInterfaceName(pciAddr)
 
+		// Get vendor and device IDs for filtering
+		vendorID := getVendorID(pciAddr)
+		deviceID := getDeviceID(pciAddr)
+
+		// Check if vendor is allowed based on configuration
+		if s.config != nil && !s.config.IsVendorAllowed(vendorID) {
+			s.logger.WithFields(logrus.Fields{
+				"pci":       pciAddr,
+				"vendor":    vendorID,
+				"device":    deviceID,
+				"interface": pfInterface,
+			}).Debug("skipping device - vendor not allowed")
+			continue
+		}
+
+		s.logger.WithFields(logrus.Fields{
+			"pci":         pciAddr,
+			"interface":   pfInterface,
+			"vendor_id":   vendorID,
+			"device_id":   deviceID,
+			"vendor_name": getPCIVendorDeviceInfo(vendorID, deviceID, getSubsysVendor(pciAddr), getSubsysDevice(pciAddr)).VendorName,
+			"device_name": getPCIVendorDeviceInfo(vendorID, deviceID, getSubsysVendor(pciAddr), getSubsysDevice(pciAddr)).DeviceName,
+		}).Debug("found SR-IOV capable device")
+
 		pfInfo := &types.PFInfo{
 			PCIAddress:       pciAddr,
 			InterfaceName:    pfInterface,
@@ -131,30 +154,85 @@ func (s *server) discoverSRIOVDevices() error {
 			Properties:       getPFProperties(pciAddr),
 			Capabilities:     getPCICapabilities(pciAddr),
 			DeviceClass:      getDeviceClass(pciAddr),
-			VendorID:         getVendorID(pciAddr),
-			DeviceID:         getDeviceID(pciAddr),
+			VendorID:         vendorID,
+			DeviceID:         deviceID,
 			SubsysVendor:     getSubsysVendor(pciAddr),
 			SubsysDevice:     getSubsysDevice(pciAddr),
 			Description:      getDeviceDescription(pciAddr),
-			VendorName:       getPCIVendorDeviceInfo(getVendorID(pciAddr), getDeviceID(pciAddr), getSubsysVendor(pciAddr), getSubsysDevice(pciAddr)).VendorName,
-			DeviceName:       getPCIVendorDeviceInfo(getVendorID(pciAddr), getDeviceID(pciAddr), getSubsysVendor(pciAddr), getSubsysDevice(pciAddr)).DeviceName,
-			SubsysVendorName: getPCIVendorDeviceInfo(getVendorID(pciAddr), getDeviceID(pciAddr), getSubsysVendor(pciAddr), getSubsysDevice(pciAddr)).SubsysVendorName,
-			SubsysDeviceName: getPCIVendorDeviceInfo(getVendorID(pciAddr), getDeviceID(pciAddr), getSubsysVendor(pciAddr), getSubsysDevice(pciAddr)).SubsysDeviceName,
+			VendorName:       getPCIVendorDeviceInfo(vendorID, deviceID, getSubsysVendor(pciAddr), getSubsysDevice(pciAddr)).VendorName,
+			DeviceName:       getPCIVendorDeviceInfo(vendorID, deviceID, getSubsysVendor(pciAddr), getSubsysDevice(pciAddr)).DeviceName,
+			SubsysVendorName: getPCIVendorDeviceInfo(vendorID, deviceID, getSubsysVendor(pciAddr), getSubsysDevice(pciAddr)).SubsysVendorName,
+			SubsysDeviceName: getPCIVendorDeviceInfo(vendorID, deviceID, getSubsysVendor(pciAddr), getSubsysDevice(pciAddr)).SubsysDeviceName,
+			EswitchMode:      getEswitchMode(pfInterface),
 			VFs:              make(map[string]*types.VFInfo),
 		}
 
 		s.sriovCache.pfs[pciAddr] = pfInfo
 
 		s.logger.WithFields(logrus.Fields{
-			"pf":          pciAddr,
-			"interface":   pfInterface,
-			"total_vfs":   totalVFs,
-			"enabled_vfs": numVFs,
+			"pf":           pciAddr,
+			"interface":    pfInterface,
+			"total_vfs":    totalVFs,
+			"enabled_vfs":  numVFs,
+			"eswitch_mode": pfInfo.EswitchMode,
+			"vendor":       vendorID,
+			"device":       deviceID,
 		}).Info("discovered SR-IOV PF")
 
 		// Discover VFs if SR-IOV is enabled
 		if numVFs > 0 {
 			s.discoverVFsForPF(pciAddr, pfInfo)
+		}
+
+		// Discover representors only if enabled and device meets criteria
+		if numVFs > 0 && s.config != nil && s.config.Discovery.EnableRepresentorDiscovery {
+			// Check switchdev mode if enabled
+			if s.config.Discovery.EnableSwitchdevModeCheck {
+				if pfInfo.EswitchMode == "switchdev" && supportsEswitchMode(pfInfo.VendorID, pfInfo.DeviceID) {
+					// Additional safety check: verify that the device actually supports representors
+					if supportsRepresentors(pfInfo.VendorID, pfInfo.DeviceID, pfInterface) {
+						s.logger.WithFields(logrus.Fields{
+							"pf":        pciAddr,
+							"interface": pfInterface,
+							"mode":      pfInfo.EswitchMode,
+						}).Debug("PF is in switchdev mode and supports representors, discovering representors")
+						s.discoverRepresentorsForPF(pciAddr, pfInfo)
+					} else {
+						s.logger.WithFields(logrus.Fields{
+							"pf":        pciAddr,
+							"interface": pfInterface,
+							"vendor":    pfInfo.VendorID,
+							"device":    pfInfo.DeviceID,
+						}).Debug("skipping representor discovery - device does not support representors despite being in switchdev mode")
+					}
+				} else if pfInfo.EswitchMode == "switchdev" && !supportsEswitchMode(pfInfo.VendorID, pfInfo.DeviceID) {
+					s.logger.WithFields(logrus.Fields{
+						"pf":        pciAddr,
+						"interface": pfInterface,
+						"vendor":    pfInfo.VendorID,
+						"device":    pfInfo.DeviceID,
+					}).Debug("skipping representor discovery - device does not support e-switch mode")
+				} else {
+					s.logger.WithFields(logrus.Fields{
+						"pf":        pciAddr,
+						"interface": pfInterface,
+						"num_vfs":   numVFs,
+						"mode":      pfInfo.EswitchMode,
+					}).Debug("skipping representor discovery - SR-IOV disabled or not in switchdev mode")
+				}
+			} else {
+				// Switchdev mode check disabled, discover representors for all devices with VFs
+				s.logger.WithFields(logrus.Fields{
+					"pf":        pciAddr,
+					"interface": pfInterface,
+				}).Debug("switchdev mode check disabled, discovering representors")
+				s.discoverRepresentorsForPF(pciAddr, pfInfo)
+			}
+		} else if numVFs > 0 && (s.config == nil || !s.config.Discovery.EnableRepresentorDiscovery) {
+			s.logger.WithFields(logrus.Fields{
+				"pf":        pciAddr,
+				"interface": pfInterface,
+			}).Debug("skipping representor discovery - representor discovery disabled")
 		}
 	}
 
@@ -255,6 +333,505 @@ func (s *server) discoverVFsForPF(pfPCI string, pfInfo *types.PFInfo) {
 		"pf":       pfPCI,
 		"vf_count": len(pfInfo.VFs),
 	}).Info("VF discovery completed for PF")
+
+	// Link representors to VFs
+	s.linkRepresentorsToVFs(pfPCI, pfInfo)
+}
+
+// discoverRepresentorsForPF discovers representors associated with a Physical Function
+func (s *server) discoverRepresentorsForPF(pfPCI string, pfInfo *types.PFInfo) {
+	pfInfo.Representors = make(map[string]*types.RepresentorInfo)
+
+	// Get PF interface name
+	pfInterface := getInterfaceName(pfPCI)
+	if pfInterface == "" {
+		s.logger.WithField("pf", pfPCI).Debug("no interface found for PF, skipping representor discovery")
+		return
+	}
+
+	// Double-check that the interface is in switchdev mode using stored value
+	if pfInfo.EswitchMode != "switchdev" {
+		s.logger.WithFields(logrus.Fields{
+			"pf":        pfPCI,
+			"interface": pfInterface,
+			"mode":      pfInfo.EswitchMode,
+		}).Debug("PF interface is not in switchdev mode, skipping representor discovery")
+		return
+	}
+
+	// Additional safety check: verify representor support before proceeding
+	if !supportsRepresentors(pfInfo.VendorID, pfInfo.DeviceID, pfInterface) {
+		s.logger.WithFields(logrus.Fields{
+			"pf":        pfPCI,
+			"interface": pfInterface,
+			"vendor":    pfInfo.VendorID,
+			"device":    pfInfo.DeviceID,
+		}).Debug("device does not support representors, skipping representor discovery")
+		return
+	}
+
+	s.logger.WithFields(logrus.Fields{
+		"pf":        pfPCI,
+		"interface": pfInterface,
+	}).Debug("starting representor discovery for PF")
+
+	// Look for representors in the same namespace as the PF
+	representors := findRepresentorsForPF(pfPCI, pfInterface)
+
+	for _, rep := range representors {
+		repInfo := &types.RepresentorInfo{
+			InterfaceName:    rep.InterfaceName,
+			PCIAddress:       rep.PCIAddress,
+			Driver:           rep.Driver,
+			VFIndex:          rep.VFIndex,
+			PFPCIAddress:     pfPCI,
+			LinkState:        rep.LinkState,
+			LinkSpeed:        rep.LinkSpeed,
+			NUMANode:         rep.NUMANode,
+			MTU:              rep.MTU,
+			MACAddress:       rep.MACAddress,
+			Features:         rep.Features,
+			Channels:         rep.Channels,
+			Rings:            rep.Rings,
+			Properties:       rep.Properties,
+			DeviceClass:      rep.DeviceClass,
+			Class:            rep.Class,
+			Description:      rep.Description,
+			VendorID:         rep.VendorID,
+			DeviceID:         rep.DeviceID,
+			SubsysVendor:     rep.SubsysVendor,
+			SubsysDevice:     rep.SubsysDevice,
+			VendorName:       rep.VendorName,
+			DeviceName:       rep.DeviceName,
+			SubsysVendorName: rep.SubsysVendorName,
+			SubsysDeviceName: rep.SubsysDeviceName,
+			AssociatedVF:     rep.AssociatedVF,
+			RepresentorType:  rep.RepresentorType,
+		}
+
+		pfInfo.Representors[rep.InterfaceName] = repInfo
+		s.sriovCache.representors[rep.InterfaceName] = repInfo
+		s.logger.WithFields(logrus.Fields{
+			"pf":            pfPCI,
+			"representor":   rep.InterfaceName,
+			"vf_index":      rep.VFIndex,
+			"associated_vf": rep.AssociatedVF,
+		}).Debug("discovered representor")
+	}
+}
+
+// findRepresentorsForPF finds representors associated with a Physical Function
+func findRepresentorsForPF(pfPCI, pfInterface string) []RepresentorData {
+	var representors []RepresentorData
+
+	// Method 1: Look for representors in /sys/class/net
+	netDevices, err := os.ReadDir("/sys/class/net")
+	if err != nil {
+		return representors
+	}
+
+	// fmt.Printf("DEBUG: Scanning %d network devices for representors of PF %s (interface: %s)\n", len(netDevices), pfPCI, pfInterface)
+
+	for _, device := range netDevices {
+		interfaceName := device.Name()
+
+		// Skip the PF interface itself
+		if interfaceName == pfInterface {
+			continue
+		}
+
+		// Check if this is a representor for our PF
+		if isRepresentorForPF(interfaceName, pfPCI, pfInterface) {
+			// fmt.Printf("DEBUG: Found representor: %s for PF %s\n", interfaceName, pfPCI)
+			repData := getRepresentorData(interfaceName, pfPCI)
+			if repData != nil {
+				representors = append(representors, *repData)
+			}
+		}
+	}
+
+	return representors
+}
+
+// isRepresentorForPF checks if an interface is a representor for a specific PF
+func isRepresentorForPF(interfaceName, pfPCI, pfInterface string) bool {
+	// Get the PCI address for this interface
+	repPCI := getPCIAddressForInterface(interfaceName)
+	if repPCI == "" {
+		return false
+	}
+
+	// Method 1: Check for Mellanox representors (vendor 0x15b3, driver mlx5e_rep)
+	vendorID := getVendorID(repPCI)
+	driver := getDriverName(repPCI)
+
+	if vendorID == "0x15b3" && driver == "mlx5e_rep" {
+		// Additional check: make sure this representor belongs to our PF
+		// by checking if the representor's PCI address is in the same domain as our PF
+		pfDomain := strings.Split(pfPCI, ":")[0]
+		repDomain := strings.Split(repPCI, ":")[0]
+		if pfDomain == repDomain {
+			return true
+		}
+	}
+
+	// Method 2: Check for representor properties in sysfs (phys_switch_id)
+	representorPath := filepath.Join("/sys/class/net", interfaceName, "phys_switch_id")
+	if _, err := os.Stat(representorPath); err == nil {
+		// Read the switch ID and compare with PF
+		pfSwitchPath := filepath.Join("/sys/class/net", pfInterface, "phys_switch_id")
+		if pfSwitchData, err := os.ReadFile(pfSwitchPath); err == nil {
+			if repSwitchData, err := os.ReadFile(representorPath); err == nil {
+				if strings.TrimSpace(string(pfSwitchData)) == strings.TrimSpace(string(repSwitchData)) {
+					return true
+				}
+			}
+		}
+	}
+
+	// Method 3: Check for representor port number (phys_port_name)
+	portPath := filepath.Join("/sys/class/net", interfaceName, "phys_port_name")
+	if _, err := os.Stat(portPath); err == nil {
+		if portData, err := os.ReadFile(portPath); err == nil {
+			portName := strings.TrimSpace(string(portData))
+			if strings.Contains(portName, "pf") || strings.Contains(portName, "vf") {
+				return true
+			}
+		}
+	}
+
+	// Method 4: Additional safety check - verify this is not a regular interface
+	// Skip interfaces that are likely regular network interfaces
+	if isRegularNetworkInterface(interfaceName) {
+		return false
+	}
+
+	return false
+}
+
+// isRegularNetworkInterface checks if an interface is likely a regular network interface
+// rather than a representor
+func isRegularNetworkInterface(interfaceName string) bool {
+	// Common regular interface patterns
+	regularPatterns := []string{
+		"eth", "en", "em", "p", "bond", "br", "veth", "docker", "cali", "flannel",
+	}
+
+	for _, pattern := range regularPatterns {
+		if strings.HasPrefix(interfaceName, pattern) {
+			// Additional check: if it's a pattern that could be a representor,
+			// we need to be more careful
+			if pattern == "en" || pattern == "p" {
+				// These could be representors, so we need to check further
+				continue
+			}
+			return true
+		}
+	}
+
+	return false
+}
+
+// isSwitchdevMode checks if a network interface is in switchdev mode
+func isSwitchdevMode(interfaceName string) bool {
+	if interfaceName == "" {
+		return false
+	}
+
+	// Check for switchdev mode by looking for the switchdev directory
+	switchdevPath := filepath.Join("/sys/class/net", interfaceName, "switchdev")
+	if _, err := os.Stat(switchdevPath); err == nil {
+		return true
+	}
+
+	// Check for Mellanox devlink mode (compat/devlink/mode)
+	devlinkModePath := filepath.Join("/sys/class/net", interfaceName, "compat/devlink/mode")
+	if _, err := os.Stat(devlinkModePath); err == nil {
+		if data, err := os.ReadFile(devlinkModePath); err == nil {
+			mode := strings.TrimSpace(string(data))
+			return mode == "switchdev"
+		}
+	}
+
+	// Alternative check: look for eswitch mode
+	eswitchPath := filepath.Join("/sys/class/net", interfaceName, "eswitch_mode")
+	if _, err := os.Stat(eswitchPath); err == nil {
+		if data, err := os.ReadFile(eswitchPath); err == nil {
+			mode := strings.TrimSpace(string(data))
+			// "switchdev" indicates switchdev mode, "legacy" indicates legacy mode
+			return mode == "switchdev"
+		}
+	}
+
+	return false
+}
+
+// getEswitchMode gets the eswitch mode for a network interface
+func getEswitchMode(interfaceName string) string {
+	if interfaceName == "" {
+		return ""
+	}
+
+	// Check for Mellanox devlink mode (compat/devlink/mode)
+	devlinkModePath := filepath.Join("/sys/class/net", interfaceName, "compat/devlink/mode")
+	if _, err := os.Stat(devlinkModePath); err == nil {
+		if data, err := os.ReadFile(devlinkModePath); err == nil {
+			return strings.TrimSpace(string(data))
+		}
+	}
+
+	// Check for eswitch mode
+	eswitchPath := filepath.Join("/sys/class/net", interfaceName, "eswitch_mode")
+	if _, err := os.Stat(eswitchPath); err == nil {
+		if data, err := os.ReadFile(eswitchPath); err == nil {
+			return strings.TrimSpace(string(data))
+		}
+	}
+
+	// Check for switchdev directory as an alternative indicator
+	switchdevPath := filepath.Join("/sys/class/net", interfaceName, "switchdev")
+	if _, err := os.Stat(switchdevPath); err == nil {
+		return "switchdev"
+	}
+
+	return ""
+}
+
+// getRepresentorData gets detailed information about a representor
+func getRepresentorData(interfaceName, pfPCI string) *RepresentorData {
+	// Get PCI address of the representor
+	pciAddr := getPCIAddressForInterface(interfaceName)
+	if pciAddr == "" {
+		return nil
+	}
+
+	// Extract VF index from representor name or properties
+	vfIndex := extractVFIndexFromRepresentor(interfaceName, pciAddr)
+
+	// Determine representor type
+	representorType := determineRepresentorType(interfaceName, pciAddr)
+
+	// Get associated VF PCI address
+	associatedVF := getAssociatedVFPCI(pfPCI, vfIndex)
+
+	return &RepresentorData{
+		InterfaceName:    interfaceName,
+		PCIAddress:       pciAddr,
+		Driver:           getInterfaceDriver(interfaceName),
+		VFIndex:          vfIndex,
+		PFPCIAddress:     pfPCI,
+		LinkState:        getLinkState(pciAddr),
+		LinkSpeed:        getLinkSpeed(pciAddr),
+		NUMANode:         getNUMANode(pciAddr),
+		MTU:              getMTU(pciAddr),
+		MACAddress:       getMACAddress(pciAddr),
+		Features:         getRepresentorFeatures(interfaceName),
+		Channels:         getRepresentorChannels(interfaceName),
+		Rings:            getRepresentorRings(interfaceName),
+		Properties:       getRepresentorProperties(interfaceName),
+		DeviceClass:      getDeviceClass(pciAddr),
+		Class:            getDeviceClass(pciAddr),
+		Description:      getDeviceDescription(pciAddr),
+		VendorID:         getVendorID(pciAddr),
+		DeviceID:         getDeviceID(pciAddr),
+		SubsysVendor:     getSubsysVendor(pciAddr),
+		SubsysDevice:     getSubsysDevice(pciAddr),
+		VendorName:       getPCIVendorDeviceInfo(getVendorID(pciAddr), getDeviceID(pciAddr), getSubsysVendor(pciAddr), getSubsysDevice(pciAddr)).VendorName,
+		DeviceName:       getPCIVendorDeviceInfo(getVendorID(pciAddr), getDeviceID(pciAddr), getSubsysVendor(pciAddr), getSubsysDevice(pciAddr)).DeviceName,
+		SubsysVendorName: getPCIVendorDeviceInfo(getVendorID(pciAddr), getDeviceID(pciAddr), getSubsysVendor(pciAddr), getSubsysDevice(pciAddr)).SubsysVendorName,
+		SubsysDeviceName: getPCIVendorDeviceInfo(getVendorID(pciAddr), getDeviceID(pciAddr), getSubsysVendor(pciAddr), getSubsysDevice(pciAddr)).SubsysDeviceName,
+		AssociatedVF:     associatedVF,
+		RepresentorType:  representorType,
+	}
+}
+
+// RepresentorData holds representor information during discovery
+type RepresentorData struct {
+	InterfaceName    string
+	PCIAddress       string
+	Driver           string
+	VFIndex          int
+	PFPCIAddress     string
+	LinkState        string
+	LinkSpeed        string
+	NUMANode         string
+	MTU              string
+	MACAddress       string
+	Features         map[string]bool
+	Channels         map[string]int
+	Rings            map[string]int
+	Properties       map[string]string
+	DeviceClass      string
+	Class            string
+	Description      string
+	VendorID         string
+	DeviceID         string
+	SubsysVendor     string
+	SubsysDevice     string
+	VendorName       string
+	DeviceName       string
+	SubsysVendorName string
+	SubsysDeviceName string
+	AssociatedVF     string
+	RepresentorType  string
+}
+
+// getPCIAddressForInterface gets the PCI address for a network interface
+func getPCIAddressForInterface(interfaceName string) string {
+	// Look for PCI address in /sys/class/net/{interface}/device
+	devicePath := filepath.Join("/sys/class/net", interfaceName, "device")
+	if _, err := os.Stat(devicePath); err == nil {
+		// Read the symlink to get PCI address
+		if link, err := os.Readlink(devicePath); err == nil {
+			// The link format is typically "../../../0000:31:00.0"
+			// We need to extract the PCI address from the end
+			parts := strings.Split(link, "/")
+			for i := len(parts) - 1; i >= 0; i-- {
+				part := parts[i]
+				// Check if this looks like a PCI address (contains ":")
+				if strings.Contains(part, ":") {
+					return part
+				}
+			}
+		}
+	}
+	return ""
+}
+
+// extractVFIndexFromRepresentor extracts VF index from representor properties
+func extractVFIndexFromRepresentor(interfaceName, pciAddr string) int {
+	// Method 1: Check phys_port_name for VF index (most reliable)
+	portPath := filepath.Join("/sys/class/net", interfaceName, "phys_port_name")
+	if _, err := os.Stat(portPath); err == nil {
+		if portData, err := os.ReadFile(portPath); err == nil {
+			portName := strings.TrimSpace(string(portData))
+			if strings.Contains(portName, "vf") {
+				parts := strings.Split(portName, "vf")
+				if len(parts) > 1 {
+					if index, err := strconv.Atoi(parts[1]); err == nil {
+						return index
+					}
+				}
+			}
+		}
+	}
+
+	// Method 2: Check for Mellanox representor naming pattern as fallback
+	// For Mellanox cards, representors follow the pattern: {pf_interface}pf{vf_index}
+	if strings.Contains(interfaceName, "vf") {
+		parts := strings.Split(interfaceName, "vf")
+		if len(parts) > 1 {
+			if index, err := strconv.Atoi(parts[1]); err == nil {
+				return index
+			}
+		}
+	}
+
+	// Method 3: Check for legacy representor naming pattern as fallback
+	if strings.Contains(interfaceName, "rep") {
+		parts := strings.Split(interfaceName, "rep")
+		if len(parts) > 1 {
+			if index, err := strconv.Atoi(parts[1]); err == nil {
+				return index
+			}
+		}
+	}
+
+	return -1
+}
+
+// determineRepresentorType determines the type of representor
+func determineRepresentorType(interfaceName, pciAddr string) string {
+	// Since we only discover representors in switchdev mode, all representors are switchdev type
+	// Check for switchdev mode indicators
+	switchdevPath := filepath.Join("/sys/class/net", interfaceName, "switchdev")
+	if _, err := os.Stat(switchdevPath); err == nil {
+		return "switchdev"
+	}
+
+	// Check for eswitch mode
+	eswitchPath := filepath.Join("/sys/class/net", interfaceName, "eswitch_mode")
+	if _, err := os.Stat(eswitchPath); err == nil {
+		if data, err := os.ReadFile(eswitchPath); err == nil {
+			mode := strings.TrimSpace(string(data))
+			if mode == "switchdev" {
+				return "switchdev"
+			}
+		}
+	}
+
+	// If we can't determine the mode but this is a representor interface, assume switchdev
+	// since we only discover representors in switchdev mode
+	if strings.Contains(interfaceName, "vf") || strings.Contains(interfaceName, "rep") {
+		return "switchdev"
+	}
+
+	// This should not happen since we only discover representors in switchdev mode
+	return "switchdev"
+}
+
+// getAssociatedVFPCI gets the PCI address of the associated VF
+func getAssociatedVFPCI(pfPCI string, vfIndex int) string {
+	if vfIndex < 0 {
+		return ""
+	}
+	return fmt.Sprintf("%s-vf%d", pfPCI, vfIndex)
+}
+
+// getRepresentorFeatures gets features for a representor interface
+func getRepresentorFeatures(interfaceName string) map[string]bool {
+	features := make(map[string]bool)
+
+	// Use ethtool to get features
+	ethHandleOnce.Do(func() {
+		var err error
+		ethHandle, err = ethtool.NewEthtool()
+		if err != nil {
+			return
+		}
+	})
+
+	if ethHandle != nil {
+		if ethFeatures, err := ethHandle.Features(interfaceName); err == nil {
+			for feature, enabled := range ethFeatures {
+				features[feature] = enabled
+			}
+		}
+	}
+
+	return features
+}
+
+// getRepresentorChannels gets channel information for a representor
+func getRepresentorChannels(interfaceName string) map[string]int {
+	return getChannelCounts(interfaceName)
+}
+
+// getRepresentorRings gets ring buffer information for a representor
+func getRepresentorRings(interfaceName string) map[string]int {
+	return getRingBufferSizes(interfaceName)
+}
+
+// getRepresentorProperties gets properties for a representor
+func getRepresentorProperties(interfaceName string) map[string]string {
+	properties := make(map[string]string)
+
+	// Get various representor properties from sysfs
+	propertyFiles := []string{
+		"phys_switch_id",
+		"phys_port_name",
+		"phys_port_id",
+		"switchdev",
+	}
+
+	for _, propFile := range propertyFiles {
+		propPath := filepath.Join("/sys/class/net", interfaceName, propFile)
+		if data, err := os.ReadFile(propPath); err == nil {
+			properties[propFile] = strings.TrimSpace(string(data))
+		}
+	}
+
+	return properties
 }
 
 // getInterfaceName gets the interface name for a PCI device
@@ -275,6 +852,31 @@ func getInterfaceName(pciAddr string) string {
 // getDriverName gets the driver name for a PCI device
 func getDriverName(pciAddr string) string {
 	driverPath := filepath.Join("/sys/bus/pci/devices", pciAddr, "driver")
+	if link, err := os.Readlink(driverPath); err == nil {
+		return filepath.Base(link)
+	}
+	return ""
+}
+
+// getInterfaceDriver gets the driver name for a network interface
+func getInterfaceDriver(interfaceName string) string {
+	// Use ethtool library to get driver name (more accurate for representors)
+	ethHandleOnce.Do(func() {
+		var err error
+		ethHandle, err = ethtool.NewEthtool()
+		if err != nil {
+			return
+		}
+	})
+
+	if ethHandle != nil {
+		if driver, err := ethHandle.DriverName(interfaceName); err == nil {
+			return driver
+		}
+	}
+
+	// Fallback to sysfs method
+	driverPath := filepath.Join("/sys/class/net", interfaceName, "device/driver")
 	if link, err := os.Readlink(driverPath); err == nil {
 		return filepath.Base(link)
 	}
@@ -953,6 +1555,25 @@ func getFeatureFlags(interfaceName string) map[string]bool {
 	return result
 }
 
+// linkRepresentorsToVFs links representors to their associated VFs
+func (s *server) linkRepresentorsToVFs(pfPCI string, pfInfo *types.PFInfo) {
+	// Iterate through representors and link them to VFs
+	for repInterface, repInfo := range pfInfo.Representors {
+		if repInfo.AssociatedVF != "" {
+			// Find the VF in the cache
+			if vfInfo, exists := s.sriovCache.vfs[repInfo.AssociatedVF]; exists {
+				// Link the representor to the VF
+				vfInfo.Representor = repInfo
+				s.logger.WithFields(logrus.Fields{
+					"vf":          repInfo.AssociatedVF,
+					"representor": repInterface,
+					"vf_index":    repInfo.VFIndex,
+				}).Debug("linked representor to VF")
+			}
+		}
+	}
+}
+
 // PCIVendorDevice represents vendor and device information from pci.ids
 type PCIVendorDevice struct {
 	VendorName       string
@@ -1051,4 +1672,121 @@ func getPCIVendorDeviceInfo(vendorID, deviceID, subsysVendorID, subsysDeviceID s
 	}
 
 	return result
+}
+
+// supportsEswitchMode determines if a device supports e-switch mode based on vendor and device IDs
+func supportsEswitchMode(vendorID, deviceID string) bool {
+	// Known vendors that support e-switch mode
+	eswitchVendors := map[string]bool{
+		"0x15b3": true, // Mellanox Technologies
+		"0x8086": true, // Intel Corporation (some devices)
+		"0x10df": true, // Emulex Corporation
+		"0x1077": true, // QLogic Corp
+		"0x14e4": true, // Broadcom Inc
+		"0x1924": true, // Solarflare Communications
+		"0x19e5": true, // Huawei Technologies Co., Ltd
+	}
+
+	// Check if vendor supports e-switch mode
+	if !eswitchVendors[vendorID] {
+		return false
+	}
+
+	// For vendors that support e-switch, check specific device IDs if needed
+	switch vendorID {
+	case "0x15b3": // Mellanox
+		// Most Mellanox devices support e-switch, but some older ones might not
+		// For now, assume all Mellanox devices support it
+		return true
+	case "0x8086": // Intel
+		// Intel devices that support e-switch (mostly newer ones)
+		eswitchDevices := map[string]bool{
+			"0x1572": true, // Intel Ethernet Controller X710
+			"0x1583": true, // Intel Ethernet Controller X710
+			"0x1584": true, // Intel Ethernet Controller X710
+			"0x1585": true, // Intel Ethernet Controller X710
+			"0x1586": true, // Intel Ethernet Controller X710
+			"0x1587": true, // Intel Ethernet Controller X710
+			"0x1588": true, // Intel Ethernet Controller X710
+			"0x1589": true, // Intel Ethernet Controller X710
+			"0x158a": true, // Intel Ethernet Controller X710
+			"0x158b": true, // Intel Ethernet Controller X710
+			"0x37d0": true, // Intel Ethernet Controller E810
+			"0x37d1": true, // Intel Ethernet Controller E810
+			"0x37d2": true, // Intel Ethernet Controller E810
+			"0x37d3": true, // Intel Ethernet Controller E810
+		}
+		return eswitchDevices[deviceID]
+	default:
+		// For other vendors that support e-switch, assume all devices support it
+		return true
+	}
+}
+
+// supportsRepresentors determines if a device actually supports representors
+// This is a more stringent check than supportsEswitchMode
+func supportsRepresentors(vendorID, deviceID, interfaceName string) bool {
+	// First check if the device supports e-switch mode
+	if !supportsEswitchMode(vendorID, deviceID) {
+		return false
+	}
+
+	// Additional checks for specific vendors and devices
+	switch vendorID {
+	case "0x15b3": // Mellanox
+		// Check for Mellanox representor driver support
+		// Look for mlx5e_rep driver in the system
+		if hasMellanoxRepresentorDriver() {
+			return true
+		}
+		// Fallback: check if the interface has representor-related sysfs entries
+		return hasRepresentorSysfsEntries(interfaceName)
+	case "0x8086": // Intel
+		// Intel devices that support representors (subset of e-switch devices)
+		representorDevices := map[string]bool{
+			"0x37d0": true, // Intel Ethernet Controller E810
+			"0x37d1": true, // Intel Ethernet Controller E810
+			"0x37d2": true, // Intel Ethernet Controller E810
+			"0x37d3": true, // Intel Ethernet Controller E810
+		}
+		if representorDevices[deviceID] {
+			return hasRepresentorSysfsEntries(interfaceName)
+		}
+		return false
+	default:
+		// For other vendors, check if they have representor sysfs entries
+		return hasRepresentorSysfsEntries(interfaceName)
+	}
+}
+
+// hasMellanoxRepresentorDriver checks if the Mellanox representor driver is loaded
+func hasMellanoxRepresentorDriver() bool {
+	// Check if mlx5e_rep driver is loaded
+	driverPath := "/sys/bus/pci/drivers/mlx5e_rep"
+	if _, err := os.Stat(driverPath); err == nil {
+		return true
+	}
+	return false
+}
+
+// hasRepresentorSysfsEntries checks if an interface has representor-related sysfs entries
+func hasRepresentorSysfsEntries(interfaceName string) bool {
+	if interfaceName == "" {
+		return false
+	}
+
+	// Check for representor-specific sysfs entries
+	representorPaths := []string{
+		filepath.Join("/sys/class/net", interfaceName, "phys_switch_id"),
+		filepath.Join("/sys/class/net", interfaceName, "phys_port_name"),
+		filepath.Join("/sys/class/net", interfaceName, "phys_port_id"),
+	}
+
+	for _, path := range representorPaths {
+		if _, err := os.Stat(path); err == nil {
+			return true
+		}
+	}
+
+	return false
 }

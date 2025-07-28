@@ -66,11 +66,12 @@ Examples:
 	getCmd = &cobra.Command{
 		Use:   "get [pci-address]",
 		Short: "Get detailed information about a specific device",
-		Long: `Get detailed information about a specific SR-IOV device by PCI address.
+		Long: `Get detailed information about a specific SR-IOV device by PCI address or interface name.
 Examples:
-  sriovctl get 0000:31:00.0              # Get specific device
+  sriovctl get 0000:31:00.0              # Get specific device by PCI address
+  sriovctl get --interface=ens60f0np0    # Get device by interface name
   sriovctl get 0000:31:00.0 --json       # Get in JSON format`,
-		Args: cobra.ExactArgs(1),
+		Args: cobra.MaximumNArgs(1),
 		Run:  runGet,
 	}
 
@@ -178,7 +179,15 @@ func runList(cmd *cobra.Command, args []string) {
 
 // runGet handles the get command
 func runGet(cmd *cobra.Command, args []string) {
-	pciAddr = args[0] // Use the provided PCI address
+	// Handle PCI address from arguments or interface name from flags
+	if len(args) > 0 {
+		pciAddr = args[0] // Use the provided PCI address
+	} else if interfaceName == "" {
+		fmt.Fprintf(os.Stderr, "Error: must provide either a PCI address or use --interface flag\n")
+		fmt.Fprintf(os.Stderr, "Usage: sriovctl get [pci-address] [flags]\n")
+		fmt.Fprintf(os.Stderr, "   or: sriovctl get --interface=<interface-name> [flags]\n")
+		os.Exit(1)
+	}
 
 	sriovData, err := getSRIOVData()
 	if err != nil {
@@ -202,6 +211,7 @@ func runStatus(cmd *cobra.Command, args []string) {
 	// Calculate statistics
 	totalPFs := len(sriovData.PhysicalFunctions)
 	totalVFs := len(sriovData.VirtualFunctions)
+	totalRepresentors := 0
 	enabledPFs := 0
 	vendorCounts := make(map[string]int)
 
@@ -209,6 +219,7 @@ func runStatus(cmd *cobra.Command, args []string) {
 		if pf.SRIOVEnabled {
 			enabledPFs++
 		}
+		totalRepresentors += len(pf.Representors)
 		vendorCounts[pf.VendorName]++
 	}
 
@@ -217,6 +228,7 @@ func runStatus(cmd *cobra.Command, args []string) {
 	fmt.Println("====================")
 	fmt.Printf("Physical Functions: %d total, %d with SR-IOV enabled\n", totalPFs, enabledPFs)
 	fmt.Printf("Virtual Functions: %d total\n", totalVFs)
+	fmt.Printf("Representors: %d total\n", totalRepresentors)
 	fmt.Printf("SR-IOV Enablement Rate: %.1f%%\n", float64(enabledPFs)/float64(totalPFs)*100)
 	fmt.Println()
 	fmt.Println("Vendors:")
@@ -243,6 +255,7 @@ func runVendors(cmd *cobra.Command, args []string) {
 			vendors[pf.VendorName]["enabled_pfs"]++
 		}
 		vendors[pf.VendorName]["vfs"] += len(pf.VFs)
+		vendors[pf.VendorName]["representors"] += len(pf.Representors)
 	}
 
 	// Display vendors
@@ -253,6 +266,7 @@ func runVendors(cmd *cobra.Command, args []string) {
 		fmt.Printf("  Physical Functions: %d\n", stats["pfs"])
 		fmt.Printf("  Enabled SR-IOV: %d\n", stats["enabled_pfs"])
 		fmt.Printf("  Virtual Functions: %d\n", stats["vfs"])
+		fmt.Printf("  Representors: %d\n", stats["representors"])
 		fmt.Println()
 	}
 }
@@ -326,8 +340,14 @@ func runStats(cmd *cobra.Command, args []string) {
 
 // getSRIOVData connects to the server and retrieves SR-IOV data
 func getSRIOVData() (types.SRIOVData, error) {
-	// Connect to the server
-	conn, err := grpc.Dial(serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	// Connect to the server with larger message size limits
+	conn, err := grpc.Dial(serverAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(100*1024*1024), // 100MB
+			grpc.MaxCallSendMsgSize(100*1024*1024), // 100MB
+		),
+	)
 	if err != nil {
 		return types.SRIOVData{}, fmt.Errorf("failed to connect to server: %v", err)
 	}
@@ -356,6 +376,58 @@ func getSRIOVData() (types.SRIOVData, error) {
 
 // displaySRIOVData displays the SR-IOV data in the specified format
 func displaySRIOVData(data types.SRIOVData, format string) {
+	// Check if we're displaying a single interface (when filtering by interface name)
+	if len(data.PhysicalFunctions) == 1 {
+		// Check if this is a single VF query
+		if len(data.VirtualFunctions) == 1 {
+			// Find the single VF
+			var singleVF *types.VFInfo
+			for _, vf := range data.VirtualFunctions {
+				singleVF = vf
+				break
+			}
+
+			if singleVF != nil {
+				switch format {
+				case "json":
+					displaySingleInterfaceJSON(singleVF, false)
+				case "json-pretty":
+					displaySingleInterfaceJSON(singleVF, true)
+				case "table":
+					displaySingleInterfaceTable(singleVF)
+				default:
+					logrus.Fatal("invalid format. Use: table, json, or json-pretty")
+				}
+				return
+			}
+		}
+
+		// Check if this is a single PF query (no VFs in result)
+		if len(data.VirtualFunctions) == 0 {
+			// Find the single PF
+			var singlePF *types.PFInfo
+			for _, pf := range data.PhysicalFunctions {
+				singlePF = pf
+				break
+			}
+
+			if singlePF != nil {
+				switch format {
+				case "json":
+					displaySinglePFJSON(singlePF, false)
+				case "json-pretty":
+					displaySinglePFJSON(singlePF, true)
+				case "table":
+					displaySinglePFTable(singlePF)
+				default:
+					logrus.Fatal("invalid format. Use: table, json, or json-pretty")
+				}
+				return
+			}
+		}
+	}
+
+	// Default display for multiple items or PFs
 	switch format {
 	case "table":
 		displaySRIOVTable(data)
@@ -391,9 +463,12 @@ func filterSRIOVData(data types.SRIOVData, pciAddr, interfaceName, vendorID stri
 		// Add this PF to filtered data
 		filteredData.PhysicalFunctions[pfPCI] = pfInfo
 
-		// Also add all VFs for this PF to the VF map
-		for vfPCI, vfInfo := range pfInfo.VFs {
-			filteredData.VirtualFunctions[vfPCI] = vfInfo
+		// Only add VFs if we're not filtering by interface name (to avoid showing all VFs when querying a specific PF)
+		if interfaceName == "" {
+			// Also add all VFs for this PF to the VF map
+			for vfPCI, vfInfo := range pfInfo.VFs {
+				filteredData.VirtualFunctions[vfPCI] = vfInfo
+			}
 		}
 	}
 
@@ -497,13 +572,181 @@ func displaySRIOVTable(data types.SRIOVData) {
 		} else {
 			fmt.Println("  No Virtual Functions")
 		}
+
+		// Display Representors if any exist
+		if len(pfInfo.Representors) > 0 {
+			fmt.Println("  Representors:")
+			fmt.Printf("  %-20s %-15s %-15s %-10s %-10s %-15s %-20s %-30s %-30s\n", "Interface", "PCI Address", "Driver", "NUMA Node", "VF Index", "Class", "Type", "Vendor", "Device")
+			fmt.Printf("  %-20s %-15s %-15s %-10s %-10s %-15s %-20s %-30s %-30s\n",
+				strings.Repeat("-", 20), strings.Repeat("-", 15), strings.Repeat("-", 15),
+				strings.Repeat("-", 10), strings.Repeat("-", 10), strings.Repeat("-", 15), strings.Repeat("-", 20), strings.Repeat("-", 30), strings.Repeat("-", 30))
+
+			for repInterface, repInfo := range pfInfo.Representors {
+				// Truncate vendor and device names if too long
+				vendorName := repInfo.VendorName
+				if len(vendorName) > 27 {
+					vendorName = vendorName[:24] + "..."
+				}
+				deviceName := repInfo.DeviceName
+				if len(deviceName) > 27 {
+					deviceName = deviceName[:24] + "..."
+				}
+
+				fmt.Printf("  %-20s %-15s %-15s %-10s %-10d %-15s %-20s %-30s %-30s\n",
+					repInterface,
+					repInfo.PCIAddress,
+					repInfo.Driver,
+					repInfo.NUMANode,
+					repInfo.VFIndex,
+					repInfo.DeviceClass,
+					repInfo.RepresentorType,
+					vendorName,
+					deviceName)
+			}
+		} else {
+			fmt.Println("  No Representors")
+		}
 		fmt.Println()
 		fmt.Println(strings.Repeat("-", 120))
 		fmt.Println()
 	}
 
 	// Summary
-	fmt.Printf("Summary: %d Physical Functions, %d Virtual Functions\n", len(data.PhysicalFunctions), len(data.VirtualFunctions))
+	totalRepresentors := 0
+	for _, pfInfo := range data.PhysicalFunctions {
+		totalRepresentors += len(pfInfo.Representors)
+	}
+	fmt.Printf("Summary: %d Physical Functions, %d Virtual Functions, %d Representors\n", len(data.PhysicalFunctions), len(data.VirtualFunctions), totalRepresentors)
+}
+
+// displaySingleInterfaceJSON displays a single VF interface in JSON format
+func displaySingleInterfaceJSON(vf *types.VFInfo, pretty bool) {
+	var jsonData []byte
+	var err error
+
+	if pretty {
+		jsonData, err = json.MarshalIndent(vf, "", "  ")
+	} else {
+		jsonData, err = json.Marshal(vf)
+	}
+
+	if err != nil {
+		logrus.WithError(err).Fatal("failed to marshal JSON")
+	}
+
+	fmt.Println(string(jsonData))
+}
+
+// displaySingleInterfaceTable displays a single VF interface in table format
+func displaySingleInterfaceTable(vf *types.VFInfo) {
+	fmt.Println("Virtual Function Information")
+	fmt.Println("=" + strings.Repeat("=", 50))
+	fmt.Println()
+	fmt.Printf("PCI Address: %s\n", vf.PCIAddress)
+	fmt.Printf("Interface: %s\n", vf.InterfaceName)
+	fmt.Printf("Driver: %s\n", vf.Driver)
+	fmt.Printf("Class: %s\n", vf.DeviceClass)
+	fmt.Printf("Description: %s\n", vf.Description)
+	fmt.Printf("Vendor ID: %s, Device ID: %s\n", vf.VendorID, vf.DeviceID)
+	if vf.VendorName != "" {
+		fmt.Printf("Vendor: %s\n", vf.VendorName)
+	}
+	if vf.DeviceName != "" {
+		fmt.Printf("Device: %s\n", vf.DeviceName)
+	}
+	if vf.SubsysVendorName != "" {
+		fmt.Printf("Subsys Vendor: %s\n", vf.SubsysVendorName)
+	}
+	if vf.SubsysDeviceName != "" {
+		fmt.Printf("Subsys Device: %s\n", vf.SubsysDeviceName)
+	}
+	fmt.Printf("NUMA Node: %s\n", vf.NUMANode)
+	fmt.Printf("VF Index: %d\n", vf.VFIndex)
+	fmt.Printf("Parent PF: %s\n", vf.PFPCIAddress)
+}
+
+// displaySinglePFJSON displays a single PF interface in JSON format
+func displaySinglePFJSON(pf *types.PFInfo, pretty bool) {
+	// Create a clean PF object without VFs and representors for single interface display
+	cleanPF := &types.PFInfo{
+		PCIAddress:       pf.PCIAddress,
+		InterfaceName:    pf.InterfaceName,
+		Driver:           pf.Driver,
+		TotalVFs:         pf.TotalVFs,
+		NumVFs:           pf.NumVFs,
+		SRIOVEnabled:     pf.SRIOVEnabled,
+		NUMANode:         pf.NUMANode,
+		LinkState:        pf.LinkState,
+		LinkSpeed:        pf.LinkSpeed,
+		MTU:              pf.MTU,
+		MACAddress:       pf.MACAddress,
+		Features:         pf.Features,
+		Channels:         pf.Channels,
+		Rings:            pf.Rings,
+		Properties:       pf.Properties,
+		Capabilities:     pf.Capabilities,
+		DeviceClass:      pf.DeviceClass,
+		Class:            pf.Class,
+		Description:      pf.Description,
+		VendorID:         pf.VendorID,
+		DeviceID:         pf.DeviceID,
+		SubsysVendor:     pf.SubsysVendor,
+		SubsysDevice:     pf.SubsysDevice,
+		VendorName:       pf.VendorName,
+		DeviceName:       pf.DeviceName,
+		SubsysVendorName: pf.SubsysVendorName,
+		SubsysDeviceName: pf.SubsysDeviceName,
+		EswitchMode:      pf.EswitchMode,
+		// Don't include VFs and Representors for single interface display
+		VFs:          make(map[string]*types.VFInfo),
+		Representors: make(map[string]*types.RepresentorInfo),
+	}
+
+	var jsonData []byte
+	var err error
+
+	if pretty {
+		jsonData, err = json.MarshalIndent(cleanPF, "", "  ")
+	} else {
+		jsonData, err = json.Marshal(cleanPF)
+	}
+
+	if err != nil {
+		logrus.WithError(err).Fatal("failed to marshal JSON")
+	}
+
+	fmt.Println(string(jsonData))
+}
+
+// displaySinglePFTable displays a single PF interface in table format
+func displaySinglePFTable(pf *types.PFInfo) {
+	fmt.Println("Physical Function Information")
+	fmt.Println("=" + strings.Repeat("=", 50))
+	fmt.Println()
+	fmt.Printf("PCI Address: %s\n", pf.PCIAddress)
+	fmt.Printf("Interface: %s\n", pf.InterfaceName)
+	fmt.Printf("Driver: %s\n", pf.Driver)
+	fmt.Printf("Class: %s\n", pf.DeviceClass)
+	fmt.Printf("Description: %s\n", pf.Description)
+	fmt.Printf("Vendor ID: %s, Device ID: %s\n", pf.VendorID, pf.DeviceID)
+	if pf.VendorName != "" {
+		fmt.Printf("Vendor: %s\n", pf.VendorName)
+	}
+	if pf.DeviceName != "" {
+		fmt.Printf("Device: %s\n", pf.DeviceName)
+	}
+	if pf.SubsysVendorName != "" {
+		fmt.Printf("Subsys Vendor: %s\n", pf.SubsysVendorName)
+	}
+	if pf.SubsysDeviceName != "" {
+		fmt.Printf("Subsys Device: %s\n", pf.SubsysDeviceName)
+	}
+	fmt.Printf("NUMA Node: %s\n", pf.NUMANode)
+	fmt.Printf("Total VFs: %d, Enabled VFs: %d\n", pf.TotalVFs, pf.NumVFs)
+	fmt.Printf("SR-IOV Enabled: %t\n", pf.SRIOVEnabled)
+	if pf.EswitchMode != "" {
+		fmt.Printf("E-Switch Mode: %s\n", pf.EswitchMode)
+	}
 }
 
 func displayJSON(data types.SRIOVData, pretty bool) {
