@@ -3,436 +3,205 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
-	"os"
-	"strconv"
 	"strings"
 	"time"
 
-	pb "sriov-plugin/proto"
-
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
+	"sriov-plugin/pkg/types"
+	pb "sriov-plugin/proto"
 )
 
-var logger = logrus.New()
+func main() {
+	var format string
+	var pciAddr string
+	var interfaceName string
+	flag.StringVar(&format, "format", "table", "Output format: table, json, or json-pretty")
+	flag.StringVar(&pciAddr, "pci", "", "Filter by PCI address (e.g., 0000:31:00.0)")
+	flag.StringVar(&interfaceName, "interface", "", "Filter by interface name (e.g., ens60f0np0)")
+	flag.Parse()
 
-// getInterfaceNameForVF attempts to find the interface name for a VF
-func getInterfaceNameForVF(vfPCI string) string {
-	// Extract PF PCI and VF number from VF PCI address
-	// Format: 0000:31:00.0-vf15 -> PF: 0000:31:00.0, VF: 15
-	if idx := strings.LastIndex(vfPCI, "-vf"); idx > 0 {
-		pfPCI := vfPCI[:idx]
-		vfNumStr := vfPCI[idx+3:] // Remove "-vf" prefix
+	// Connect to the server
+	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		logrus.WithError(err).Fatal("failed to connect to server")
+	}
+	defer conn.Close()
 
-		// Look in PF's net directory for VF interfaces
-		netPath := fmt.Sprintf("/sys/bus/pci/devices/%s/net", pfPCI)
+	client := pb.NewSriovDeviceManagerClient(conn)
 
-		if entries, err := os.ReadDir(netPath); err == nil {
-			for _, entry := range entries {
-				if entry.IsDir() {
-					interfaceName := entry.Name()
-					// Check if this interface corresponds to our VF
-					// VF interfaces typically have patterns like:
-					// - ens60f0npf0vf15 (for VF 15)
-					// - eth100 (for VF 100)
-					if strings.Contains(interfaceName, fmt.Sprintf("vf%s", vfNumStr)) ||
-						(strings.HasPrefix(interfaceName, "eth") && len(interfaceName) > 3) {
-						// For eth interfaces, check if the number matches
-						if strings.HasPrefix(interfaceName, "eth") {
-							if ethNum, err := strconv.Atoi(interfaceName[3:]); err == nil {
-								if vfNum, err := strconv.Atoi(vfNumStr); err == nil && ethNum == vfNum {
-									return interfaceName
-								}
-							}
-						} else {
-							return interfaceName
-						}
+	// Set timeout context
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Request dump from server
+	resp, err := client.DumpInterfaces(ctx, &pb.Empty{})
+	if err != nil {
+		logrus.WithError(err).Fatal("failed to get interface dump")
+	}
+
+	// Parse the JSON response
+	var sriovData types.SRIOVData
+	if err := json.Unmarshal([]byte(resp.JsonData), &sriovData); err != nil {
+		logrus.WithError(err).Fatal("failed to parse JSON response")
+	}
+
+	// Apply filters if specified
+	if pciAddr != "" || interfaceName != "" {
+		sriovData = filterSRIOVData(sriovData, pciAddr, interfaceName)
+	}
+
+	// Display based on format
+	switch format {
+	case "table":
+		displaySRIOVTable(sriovData)
+	case "json":
+		displayJSON(sriovData, false)
+	case "json-pretty":
+		displayJSON(sriovData, true)
+	default:
+		logrus.Fatal("invalid format. Use: table, json, or json-pretty")
+	}
+}
+
+// filterSRIOVData filters the SR-IOV data based on PCI address or interface name
+func filterSRIOVData(data types.SRIOVData, pciAddr, interfaceName string) types.SRIOVData {
+	filteredData := types.SRIOVData{
+		PhysicalFunctions: make(map[string]*types.PFInfo),
+		VirtualFunctions:  make(map[string]*types.VFInfo),
+	}
+
+	// Filter Physical Functions
+	for pfPCI, pfInfo := range data.PhysicalFunctions {
+		// Check if this PF matches our filters
+		if pciAddr != "" && pfPCI != pciAddr {
+			continue
+		}
+		if interfaceName != "" && pfInfo.InterfaceName != interfaceName {
+			continue
+		}
+
+		// Add this PF to filtered data
+		filteredData.PhysicalFunctions[pfPCI] = pfInfo
+
+		// Also add all VFs for this PF to the VF map
+		for vfPCI, vfInfo := range pfInfo.VFs {
+			filteredData.VirtualFunctions[vfPCI] = vfInfo
+		}
+	}
+
+	// If no PFs matched but we're looking for a VF by interface name
+	if len(filteredData.PhysicalFunctions) == 0 && interfaceName != "" {
+		// Search through all VFs to find one with matching interface
+		for vfPCI, vfInfo := range data.VirtualFunctions {
+			if vfInfo.InterfaceName == interfaceName {
+				// Find the parent PF
+				for pfPCI, pfInfo := range data.PhysicalFunctions {
+					if _, exists := pfInfo.VFs[vfPCI]; exists {
+						// Create a filtered version of the PF with only the matching VF
+						filteredPF := *pfInfo
+						filteredPF.VFs = make(map[string]*types.VFInfo)
+						filteredPF.VFs[vfPCI] = vfInfo
+
+						filteredData.PhysicalFunctions[pfPCI] = &filteredPF
+						filteredData.VirtualFunctions[vfPCI] = vfInfo
+						break
 					}
 				}
 			}
 		}
 	}
 
-	// If no interface found, return empty string
-	return ""
+	return filteredData
 }
 
-// formatVFName returns a user-friendly name for a VF
-func formatVFName(vfPCI string) string {
-	interfaceName := getInterfaceNameForVF(vfPCI)
-	if interfaceName != "" {
-		// Extract VF number from PCI address
-		if idx := strings.LastIndex(vfPCI, "-vf"); idx > 0 {
-			vfNum := vfPCI[idx+3:] // Remove "-vf" prefix
-			return fmt.Sprintf("%s vf %s", interfaceName, vfNum)
+func displaySRIOVTable(data types.SRIOVData) {
+	fmt.Println("SR-IOV Device Information")
+	fmt.Println("=" + strings.Repeat("=", 100))
+	fmt.Println()
+
+	// Display Physical Functions with their VFs
+	for pfPCI, pfInfo := range data.PhysicalFunctions {
+		fmt.Printf("Physical Function: %s\n", pfPCI)
+		fmt.Printf("  Interface: %s\n", pfInfo.InterfaceName)
+		fmt.Printf("  Driver: %s\n", pfInfo.Driver)
+		fmt.Printf("  Class: %s\n", pfInfo.DeviceClass)
+		fmt.Printf("  Description: %s\n", pfInfo.Description)
+		fmt.Printf("  Vendor ID: %s, Device ID: %s\n", pfInfo.VendorID, pfInfo.DeviceID)
+		if pfInfo.VendorName != "" {
+			fmt.Printf("  Vendor: %s\n", pfInfo.VendorName)
 		}
-	}
-	// Fallback to PCI address if no interface name found
-	return vfPCI
-}
-
-var rootCmd = &cobra.Command{
-	Use:   "sriovctl",
-	Short: "SR-IOV management CLI",
-	Long:  `A command line interface for managing SR-IOV devices and pools.`,
-}
-
-func main() {
-	if err := rootCmd.Execute(); err != nil {
-		logger.WithError(err).Fatal("command execution failed")
-		os.Exit(1)
-	}
-}
-
-func getClient() (pb.SriovDeviceManagerClient, *grpc.ClientConn, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-	conn, err := grpc.DialContext(ctx, "localhost:50051", grpc.WithInsecure(), grpc.WithBlock())
-	if err != nil {
-		return nil, nil, err
-	}
-	return pb.NewSriovDeviceManagerClient(conn), conn, nil
-}
-
-func listDevices(cmd *cobra.Command, args []string) error {
-	client, conn, err := getClient()
-	if err != nil {
-		logger.WithError(err).Fatal("failed to connect to server")
-	}
-	defer conn.Close()
-
-	resp, err := client.ListDevices(context.Background(), &pb.Empty{})
-	if err != nil {
-		logger.WithError(err).Fatal("failed to list devices")
-	}
-
-	for _, pf := range resp.Pfs {
-		fmt.Printf("PF %s ():\n", pf.PfPci)
-		for _, vf := range pf.Vfs {
-			fmt.Printf("  VF %s iface=%s allocated=%t masked=%t pool=%s\n",
-				vf.VfPci, vf.Interface, vf.Allocated, vf.Masked, vf.Pool)
+		if pfInfo.DeviceName != "" {
+			fmt.Printf("  Device: %s\n", pfInfo.DeviceName)
 		}
+		if pfInfo.SubsysVendorName != "" {
+			fmt.Printf("  Subsys Vendor: %s\n", pfInfo.SubsysVendorName)
+		}
+		if pfInfo.SubsysDeviceName != "" {
+			fmt.Printf("  Subsys Device: %s\n", pfInfo.SubsysDeviceName)
+		}
+		fmt.Printf("  NUMA Node: %s\n", pfInfo.NUMANode)
+		fmt.Printf("  Total VFs: %d, Enabled VFs: %d\n", pfInfo.TotalVFs, pfInfo.NumVFs)
+		fmt.Printf("  SR-IOV Enabled: %t\n", pfInfo.SRIOVEnabled)
+		fmt.Println()
+
+		if len(pfInfo.VFs) > 0 {
+			fmt.Println("  Virtual Functions:")
+			fmt.Printf("  %-15s %-20s %-15s %-10s %-10s %-15s %-30s %-30s\n", "PCI Address", "Interface", "Driver", "NUMA Node", "VF Index", "Class", "Vendor", "Device")
+			fmt.Printf("  %-15s %-20s %-15s %-10s %-10s %-15s %-30s %-30s\n",
+				strings.Repeat("-", 15), strings.Repeat("-", 20), strings.Repeat("-", 15),
+				strings.Repeat("-", 10), strings.Repeat("-", 10), strings.Repeat("-", 15), strings.Repeat("-", 30), strings.Repeat("-", 30))
+
+			for vfPCI, vfInfo := range pfInfo.VFs {
+				// Truncate vendor and device names if too long
+				vendorName := vfInfo.VendorName
+				if len(vendorName) > 27 {
+					vendorName = vendorName[:24] + "..."
+				}
+				deviceName := vfInfo.DeviceName
+				if len(deviceName) > 27 {
+					deviceName = deviceName[:24] + "..."
+				}
+
+				fmt.Printf("  %-15s %-20s %-15s %-10s %-10d %-15s %-30s %-30s\n",
+					vfPCI,
+					vfInfo.InterfaceName,
+					vfInfo.Driver,
+					vfInfo.NUMANode,
+					vfInfo.VFIndex,
+					vfInfo.DeviceClass,
+					vendorName,
+					deviceName)
+			}
+		} else {
+			fmt.Println("  No Virtual Functions")
+		}
+		fmt.Println()
+		fmt.Println(strings.Repeat("-", 120))
+		fmt.Println()
 	}
-	return nil
+
+	// Summary
+	fmt.Printf("Summary: %d Physical Functions, %d Virtual Functions\n", len(data.PhysicalFunctions), len(data.VirtualFunctions))
 }
 
-func getStatus(cmd *cobra.Command, args []string) error {
-	client, conn, err := getClient()
-	if err != nil {
-		logger.WithError(err).Fatal("failed to connect to server")
-	}
-	defer conn.Close()
+func displayJSON(data types.SRIOVData, pretty bool) {
+	var jsonData []byte
+	var err error
 
-	resp, err := client.GetStatus(context.Background(), &pb.Empty{})
-	if err != nil {
-		logger.WithError(err).Fatal("failed to get status")
-	}
-
-	fmt.Println("Pool Status:")
-	for _, pool := range resp.Pools {
-		fmt.Printf("  %s: %d total, %d allocated, %d masked, %d free (%.1f%%)\n",
-			pool.Name, pool.Total, pool.Allocated, pool.Masked, pool.Free, pool.PercentFree)
-	}
-	return nil
-}
-
-func allocateVFs(cmd *cobra.Command, args []string) error {
-	pfPCI, _ := cmd.Flags().GetString("pf")
-	count, _ := cmd.Flags().GetInt("count")
-	numaNode, _ := cmd.Flags().GetString("numa")
-	requiredFeatures, _ := cmd.Flags().GetStringSlice("required-features")
-	dryRun, _ := cmd.Flags().GetBool("dry-run")
-
-	client, conn, err := getClient()
-	if err != nil {
-		logger.WithError(err).Fatal("failed to connect to server")
-	}
-	defer conn.Close()
-
-	req := &pb.AllocationRequest{
-		PfPci:            pfPCI,
-		Count:            uint32(count),
-		NumaNode:         numaNode,
-		RequiredFeatures: requiredFeatures,
-		DryRun:           dryRun,
-	}
-
-	resp, err := client.AllocateVFs(context.Background(), req)
-	if err != nil {
-		logger.WithError(err).Fatal("failed to allocate VFs")
-	}
-
-	if len(resp.AllocatedVfs) == 0 {
-		logger.Warn("no VFs were allocated")
-		return nil
-	}
-
-	fmt.Printf("Allocated %d VFs:\n", len(resp.AllocatedVfs))
-	for _, vf := range resp.AllocatedVfs {
-		fmt.Printf("  %s (pool: %s)\n", vf.VfPci, vf.Pool)
-	}
-	return nil
-}
-
-func releaseVFs(cmd *cobra.Command, args []string) error {
-	if len(args) == 0 {
-		logger.Fatal("no VF PCI addresses provided")
-	}
-
-	client, conn, err := getClient()
-	if err != nil {
-		logger.WithError(err).Fatal("failed to connect to server")
-	}
-	defer conn.Close()
-
-	req := &pb.ReleaseRequest{
-		VfPcis: args,
-	}
-
-	resp, err := client.ReleaseVFs(context.Background(), req)
-	if err != nil {
-		logger.WithError(err).Fatal("failed to release VFs")
-	}
-
-	fmt.Printf("Released %d VFs:\n", len(resp.Released))
-	for _, vf := range resp.Released {
-		fmt.Printf("  %s\n", vf)
-	}
-	return nil
-}
-
-func maskVF(cmd *cobra.Command, args []string) error {
-	if len(args) != 1 {
-		logger.Fatal("exactly one VF PCI address required")
-	}
-
-	reason, _ := cmd.Flags().GetString("reason")
-	if reason == "" {
-		logger.Fatal("reason is required for masking")
-	}
-
-	client, conn, err := getClient()
-	if err != nil {
-		logger.WithError(err).Fatal("failed to connect to server")
-	}
-	defer conn.Close()
-
-	req := &pb.MaskRequest{
-		VfPci:  args[0],
-		Reason: reason,
-	}
-
-	resp, err := client.MaskVF(context.Background(), req)
-	if err != nil {
-		logger.WithError(err).Fatal("failed to mask VF")
-	}
-
-	if resp.Success {
-		logger.WithField("vf", formatVFName(args[0])).Info("VF masked successfully")
+	if pretty {
+		jsonData, err = json.MarshalIndent(data, "", "  ")
 	} else {
-		logger.WithField("vf", formatVFName(args[0])).Error("failed to mask VF")
-	}
-	return nil
-}
-
-func unmaskVF(cmd *cobra.Command, args []string) error {
-	if len(args) != 1 {
-		logger.Fatal("exactly one VF PCI address required")
+		jsonData, err = json.Marshal(data)
 	}
 
-	client, conn, err := getClient()
 	if err != nil {
-		logger.WithError(err).Fatal("failed to connect to server")
-	}
-	defer conn.Close()
-
-	req := &pb.UnmaskRequest{
-		VfPci: args[0],
+		logrus.WithError(err).Fatal("failed to marshal JSON")
 	}
 
-	resp, err := client.UnmaskVF(context.Background(), req)
-	if err != nil {
-		logger.WithError(err).Fatal("failed to unmask VF")
-	}
-
-	if resp.Success {
-		logger.WithField("vf", formatVFName(args[0])).Info("VF unmasked successfully")
-	} else {
-		logger.WithField("vf", formatVFName(args[0])).Error("failed to unmask VF")
-	}
-	return nil
-}
-
-func listPools(cmd *cobra.Command, args []string) error {
-	client, conn, err := getClient()
-	if err != nil {
-		logger.WithError(err).Fatal("failed to connect to server")
-	}
-	defer conn.Close()
-
-	resp, err := client.ListPools(context.Background(), &pb.Empty{})
-	if err != nil {
-		logger.WithError(err).Fatal("failed to list pools")
-	}
-
-	fmt.Println("Available pools:")
-	for _, name := range resp.Names {
-		fmt.Printf("  %s\n", name)
-	}
-	return nil
-}
-
-func getPoolConfig(cmd *cobra.Command, args []string) error {
-	if len(args) != 1 {
-		logger.Fatal("exactly one pool name required")
-	}
-
-	client, conn, err := getClient()
-	if err != nil {
-		logger.WithError(err).Fatal("failed to connect to server")
-	}
-	defer conn.Close()
-
-	req := &pb.PoolQuery{
-		Name: args[0],
-	}
-
-	resp, err := client.GetPoolConfig(context.Background(), req)
-	if err != nil {
-		logger.WithError(err).Fatal("failed to get pool config")
-	}
-
-	fmt.Printf("Pool: %s\n", resp.Name)
-	fmt.Printf("  PF PCI: %s\n", resp.PfPci)
-	fmt.Printf("  VF Range: %s\n", resp.VfRange)
-	fmt.Printf("  Masked: %t\n", resp.Mask)
-	if resp.Mask {
-		fmt.Printf("  Mask Reason: %s\n", resp.MaskReason)
-	}
-	fmt.Printf("  NUMA: %s\n", resp.Numa)
-	fmt.Printf("  Required Features: %v\n", resp.RequiredFeatures)
-	return nil
-}
-
-func dumpInterfaces(cmd *cobra.Command, args []string) error {
-	client, conn, err := getClient()
-	if err != nil {
-		logger.WithError(err).Fatal("failed to connect to server")
-	}
-	defer conn.Close()
-
-	resp, err := client.DumpInterfaces(context.Background(), &pb.Empty{})
-	if err != nil {
-		logger.WithError(err).Fatal("failed to dump interfaces")
-	}
-
-	// Pretty print the JSON
-	var prettyJSON map[string]interface{}
-	if err := json.Unmarshal([]byte(resp.JsonData), &prettyJSON); err != nil {
-		logger.WithError(err).Fatal("failed to parse JSON response")
-	}
-
-	prettyBytes, err := json.MarshalIndent(prettyJSON, "", "  ")
-	if err != nil {
-		logger.WithError(err).Fatal("failed to format JSON")
-	}
-
-	fmt.Printf("Interface Dump (Version: %s, Timestamp: %s):\n", resp.Version, resp.Timestamp)
-	fmt.Println(string(prettyBytes))
-	return nil
-}
-
-func init() {
-	// Configure logrus
-	logger.SetFormatter(&logrus.TextFormatter{
-		FullTimestamp: true,
-	})
-	logger.SetLevel(logrus.InfoLevel)
-
-	// List command
-	listCmd := &cobra.Command{
-		Use:   "list",
-		Short: "List all SR-IOV devices",
-		RunE:  listDevices,
-	}
-	rootCmd.AddCommand(listCmd)
-
-	// Status command
-	statusCmd := &cobra.Command{
-		Use:   "status",
-		Short: "Get status of all pools",
-		RunE:  getStatus,
-	}
-	rootCmd.AddCommand(statusCmd)
-
-	// Allocate command
-	allocateCmd := &cobra.Command{
-		Use:   "allocate",
-		Short: "Allocate VFs from a pool",
-		RunE:  allocateVFs,
-	}
-	allocateCmd.Flags().String("pf", "", "PF PCI address")
-	allocateCmd.Flags().Int("count", 1, "Number of VFs to allocate")
-	allocateCmd.Flags().String("numa", "", "NUMA node preference")
-	allocateCmd.Flags().StringSlice("required-features", []string{}, "Required features")
-	allocateCmd.Flags().Bool("dry-run", false, "Dry run mode")
-	allocateCmd.MarkFlagRequired("pf")
-	rootCmd.AddCommand(allocateCmd)
-
-	// Release command
-	releaseCmd := &cobra.Command{
-		Use:   "release [VF_PCI_ADDRESSES...]",
-		Short: "Release allocated VFs",
-		Args:  cobra.MinimumNArgs(1),
-		RunE:  releaseVFs,
-	}
-	rootCmd.AddCommand(releaseCmd)
-
-	// Mask command
-	maskCmd := &cobra.Command{
-		Use:   "mask [VF_PCI_ADDRESS]",
-		Short: "Mask a VF",
-		Args:  cobra.ExactArgs(1),
-		RunE:  maskVF,
-	}
-	maskCmd.Flags().String("reason", "", "Reason for masking")
-	maskCmd.MarkFlagRequired("reason")
-	rootCmd.AddCommand(maskCmd)
-
-	// Unmask command
-	unmaskCmd := &cobra.Command{
-		Use:   "unmask [VF_PCI_ADDRESS]",
-		Short: "Unmask a VF",
-		Args:  cobra.ExactArgs(1),
-		RunE:  unmaskVF,
-	}
-	rootCmd.AddCommand(unmaskCmd)
-
-	// List pools command
-	listPoolsCmd := &cobra.Command{
-		Use:   "pools",
-		Short: "List all pools",
-		RunE:  listPools,
-	}
-	rootCmd.AddCommand(listPoolsCmd)
-
-	// Get pool config command
-	getPoolConfigCmd := &cobra.Command{
-		Use:   "pool-config [POOL_NAME]",
-		Short: "Get configuration for a specific pool",
-		Args:  cobra.ExactArgs(1),
-		RunE:  getPoolConfig,
-	}
-	rootCmd.AddCommand(getPoolConfigCmd)
-
-	// Dump interfaces command
-	dumpCmd := &cobra.Command{
-		Use:   "dump",
-		Short: "Dump comprehensive interface information in JSON format",
-		Long:  "Get detailed information about all interfaces, pools, allocations, and statistics in JSON format",
-		RunE:  dumpInterfaces,
-	}
-	rootCmd.AddCommand(dumpCmd)
+	fmt.Println(string(jsonData))
 }

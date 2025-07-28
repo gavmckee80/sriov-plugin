@@ -19,15 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SriovDeviceManager_ListDevices_FullMethodName    = "/sriov.SriovDeviceManager/ListDevices"
-	SriovDeviceManager_AllocateVFs_FullMethodName    = "/sriov.SriovDeviceManager/AllocateVFs"
-	SriovDeviceManager_ReleaseVFs_FullMethodName     = "/sriov.SriovDeviceManager/ReleaseVFs"
-	SriovDeviceManager_MaskVF_FullMethodName         = "/sriov.SriovDeviceManager/MaskVF"
-	SriovDeviceManager_UnmaskVF_FullMethodName       = "/sriov.SriovDeviceManager/UnmaskVF"
-	SriovDeviceManager_GetStatus_FullMethodName      = "/sriov.SriovDeviceManager/GetStatus"
-	SriovDeviceManager_ListPools_FullMethodName      = "/sriov.SriovDeviceManager/ListPools"
-	SriovDeviceManager_GetPoolConfig_FullMethodName  = "/sriov.SriovDeviceManager/GetPoolConfig"
-	SriovDeviceManager_DumpInterfaces_FullMethodName = "/sriov.SriovDeviceManager/DumpInterfaces"
+	SriovDeviceManager_ListDevices_FullMethodName         = "/sriov.SriovDeviceManager/ListDevices"
+	SriovDeviceManager_AllocateVFs_FullMethodName         = "/sriov.SriovDeviceManager/AllocateVFs"
+	SriovDeviceManager_ReleaseVFs_FullMethodName          = "/sriov.SriovDeviceManager/ReleaseVFs"
+	SriovDeviceManager_MaskVF_FullMethodName              = "/sriov.SriovDeviceManager/MaskVF"
+	SriovDeviceManager_UnmaskVF_FullMethodName            = "/sriov.SriovDeviceManager/UnmaskVF"
+	SriovDeviceManager_GetStatus_FullMethodName           = "/sriov.SriovDeviceManager/GetStatus"
+	SriovDeviceManager_ListPools_FullMethodName           = "/sriov.SriovDeviceManager/ListPools"
+	SriovDeviceManager_GetPoolConfig_FullMethodName       = "/sriov.SriovDeviceManager/GetPoolConfig"
+	SriovDeviceManager_DumpInterfaces_FullMethodName      = "/sriov.SriovDeviceManager/DumpInterfaces"
+	SriovDeviceManager_GetInterfaceDetails_FullMethodName = "/sriov.SriovDeviceManager/GetInterfaceDetails"
+	SriovDeviceManager_GetPFHierarchy_FullMethodName      = "/sriov.SriovDeviceManager/GetPFHierarchy"
 )
 
 // SriovDeviceManagerClient is the client API for SriovDeviceManager service.
@@ -43,6 +45,8 @@ type SriovDeviceManagerClient interface {
 	ListPools(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*PoolList, error)
 	GetPoolConfig(ctx context.Context, in *PoolQuery, opts ...grpc.CallOption) (*PoolConfig, error)
 	DumpInterfaces(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*InterfaceDump, error)
+	GetInterfaceDetails(ctx context.Context, in *InterfaceQuery, opts ...grpc.CallOption) (*InterfaceDetails, error)
+	GetPFHierarchy(ctx context.Context, in *PFQuery, opts ...grpc.CallOption) (*PFHierarchy, error)
 }
 
 type sriovDeviceManagerClient struct {
@@ -143,6 +147,26 @@ func (c *sriovDeviceManagerClient) DumpInterfaces(ctx context.Context, in *Empty
 	return out, nil
 }
 
+func (c *sriovDeviceManagerClient) GetInterfaceDetails(ctx context.Context, in *InterfaceQuery, opts ...grpc.CallOption) (*InterfaceDetails, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InterfaceDetails)
+	err := c.cc.Invoke(ctx, SriovDeviceManager_GetInterfaceDetails_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sriovDeviceManagerClient) GetPFHierarchy(ctx context.Context, in *PFQuery, opts ...grpc.CallOption) (*PFHierarchy, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PFHierarchy)
+	err := c.cc.Invoke(ctx, SriovDeviceManager_GetPFHierarchy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SriovDeviceManagerServer is the server API for SriovDeviceManager service.
 // All implementations must embed UnimplementedSriovDeviceManagerServer
 // for forward compatibility.
@@ -156,6 +180,8 @@ type SriovDeviceManagerServer interface {
 	ListPools(context.Context, *Empty) (*PoolList, error)
 	GetPoolConfig(context.Context, *PoolQuery) (*PoolConfig, error)
 	DumpInterfaces(context.Context, *Empty) (*InterfaceDump, error)
+	GetInterfaceDetails(context.Context, *InterfaceQuery) (*InterfaceDetails, error)
+	GetPFHierarchy(context.Context, *PFQuery) (*PFHierarchy, error)
 	mustEmbedUnimplementedSriovDeviceManagerServer()
 }
 
@@ -192,6 +218,12 @@ func (UnimplementedSriovDeviceManagerServer) GetPoolConfig(context.Context, *Poo
 }
 func (UnimplementedSriovDeviceManagerServer) DumpInterfaces(context.Context, *Empty) (*InterfaceDump, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DumpInterfaces not implemented")
+}
+func (UnimplementedSriovDeviceManagerServer) GetInterfaceDetails(context.Context, *InterfaceQuery) (*InterfaceDetails, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetInterfaceDetails not implemented")
+}
+func (UnimplementedSriovDeviceManagerServer) GetPFHierarchy(context.Context, *PFQuery) (*PFHierarchy, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPFHierarchy not implemented")
 }
 func (UnimplementedSriovDeviceManagerServer) mustEmbedUnimplementedSriovDeviceManagerServer() {}
 func (UnimplementedSriovDeviceManagerServer) testEmbeddedByValue()                            {}
@@ -376,6 +408,42 @@ func _SriovDeviceManager_DumpInterfaces_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SriovDeviceManager_GetInterfaceDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InterfaceQuery)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SriovDeviceManagerServer).GetInterfaceDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SriovDeviceManager_GetInterfaceDetails_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SriovDeviceManagerServer).GetInterfaceDetails(ctx, req.(*InterfaceQuery))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SriovDeviceManager_GetPFHierarchy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PFQuery)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SriovDeviceManagerServer).GetPFHierarchy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SriovDeviceManager_GetPFHierarchy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SriovDeviceManagerServer).GetPFHierarchy(ctx, req.(*PFQuery))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SriovDeviceManager_ServiceDesc is the grpc.ServiceDesc for SriovDeviceManager service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -418,6 +486,14 @@ var SriovDeviceManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DumpInterfaces",
 			Handler:    _SriovDeviceManager_DumpInterfaces_Handler,
+		},
+		{
+			MethodName: "GetInterfaceDetails",
+			Handler:    _SriovDeviceManager_GetInterfaceDetails_Handler,
+		},
+		{
+			MethodName: "GetPFHierarchy",
+			Handler:    _SriovDeviceManager_GetPFHierarchy_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

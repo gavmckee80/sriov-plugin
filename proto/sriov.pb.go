@@ -1173,6 +1173,358 @@ func (x *InterfaceDump) GetVersion() string {
 	return ""
 }
 
+type InterfaceQuery struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	InterfaceName string                 `protobuf:"bytes,1,opt,name=interface_name,json=interfaceName,proto3" json:"interface_name,omitempty"`
+	OutputFormat  string                 `protobuf:"bytes,2,opt,name=output_format,json=outputFormat,proto3" json:"output_format,omitempty"` // "json" or "table"
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InterfaceQuery) Reset() {
+	*x = InterfaceQuery{}
+	mi := &file_proto_sriov_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InterfaceQuery) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InterfaceQuery) ProtoMessage() {}
+
+func (x *InterfaceQuery) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_sriov_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InterfaceQuery.ProtoReflect.Descriptor instead.
+func (*InterfaceQuery) Descriptor() ([]byte, []int) {
+	return file_proto_sriov_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *InterfaceQuery) GetInterfaceName() string {
+	if x != nil {
+		return x.InterfaceName
+	}
+	return ""
+}
+
+func (x *InterfaceQuery) GetOutputFormat() string {
+	if x != nil {
+		return x.OutputFormat
+	}
+	return ""
+}
+
+type InterfaceDetails struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	InterfaceName string                 `protobuf:"bytes,1,opt,name=interface_name,json=interfaceName,proto3" json:"interface_name,omitempty"`
+	PciAddress    string                 `protobuf:"bytes,2,opt,name=pci_address,json=pciAddress,proto3" json:"pci_address,omitempty"`
+	InterfaceType string                 `protobuf:"bytes,3,opt,name=interface_type,json=interfaceType,proto3" json:"interface_type,omitempty"` // "PF" or "VF"
+	ParentPf      string                 `protobuf:"bytes,4,opt,name=parent_pf,json=parentPf,proto3" json:"parent_pf,omitempty"`                // for VFs
+	Driver        string                 `protobuf:"bytes,5,opt,name=driver,proto3" json:"driver,omitempty"`
+	NumaNode      string                 `protobuf:"bytes,6,opt,name=numa_node,json=numaNode,proto3" json:"numa_node,omitempty"`
+	LinkState     string                 `protobuf:"bytes,7,opt,name=link_state,json=linkState,proto3" json:"link_state,omitempty"`
+	LinkSpeed     string                 `protobuf:"bytes,8,opt,name=link_speed,json=linkSpeed,proto3" json:"link_speed,omitempty"`
+	Features      map[string]bool        `protobuf:"bytes,9,rep,name=features,proto3" json:"features,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	Properties    map[string]string      `protobuf:"bytes,10,rep,name=properties,proto3" json:"properties,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Pool          string                 `protobuf:"bytes,11,opt,name=pool,proto3" json:"pool,omitempty"`
+	Allocated     bool                   `protobuf:"varint,12,opt,name=allocated,proto3" json:"allocated,omitempty"`
+	Masked        bool                   `protobuf:"varint,13,opt,name=masked,proto3" json:"masked,omitempty"`
+	MaskReason    string                 `protobuf:"bytes,14,opt,name=mask_reason,json=maskReason,proto3" json:"mask_reason,omitempty"`
+	JsonData      string                 `protobuf:"bytes,15,opt,name=json_data,json=jsonData,proto3" json:"json_data,omitempty"`
+	TableData     string                 `protobuf:"bytes,16,opt,name=table_data,json=tableData,proto3" json:"table_data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InterfaceDetails) Reset() {
+	*x = InterfaceDetails{}
+	mi := &file_proto_sriov_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InterfaceDetails) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InterfaceDetails) ProtoMessage() {}
+
+func (x *InterfaceDetails) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_sriov_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InterfaceDetails.ProtoReflect.Descriptor instead.
+func (*InterfaceDetails) Descriptor() ([]byte, []int) {
+	return file_proto_sriov_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *InterfaceDetails) GetInterfaceName() string {
+	if x != nil {
+		return x.InterfaceName
+	}
+	return ""
+}
+
+func (x *InterfaceDetails) GetPciAddress() string {
+	if x != nil {
+		return x.PciAddress
+	}
+	return ""
+}
+
+func (x *InterfaceDetails) GetInterfaceType() string {
+	if x != nil {
+		return x.InterfaceType
+	}
+	return ""
+}
+
+func (x *InterfaceDetails) GetParentPf() string {
+	if x != nil {
+		return x.ParentPf
+	}
+	return ""
+}
+
+func (x *InterfaceDetails) GetDriver() string {
+	if x != nil {
+		return x.Driver
+	}
+	return ""
+}
+
+func (x *InterfaceDetails) GetNumaNode() string {
+	if x != nil {
+		return x.NumaNode
+	}
+	return ""
+}
+
+func (x *InterfaceDetails) GetLinkState() string {
+	if x != nil {
+		return x.LinkState
+	}
+	return ""
+}
+
+func (x *InterfaceDetails) GetLinkSpeed() string {
+	if x != nil {
+		return x.LinkSpeed
+	}
+	return ""
+}
+
+func (x *InterfaceDetails) GetFeatures() map[string]bool {
+	if x != nil {
+		return x.Features
+	}
+	return nil
+}
+
+func (x *InterfaceDetails) GetProperties() map[string]string {
+	if x != nil {
+		return x.Properties
+	}
+	return nil
+}
+
+func (x *InterfaceDetails) GetPool() string {
+	if x != nil {
+		return x.Pool
+	}
+	return ""
+}
+
+func (x *InterfaceDetails) GetAllocated() bool {
+	if x != nil {
+		return x.Allocated
+	}
+	return false
+}
+
+func (x *InterfaceDetails) GetMasked() bool {
+	if x != nil {
+		return x.Masked
+	}
+	return false
+}
+
+func (x *InterfaceDetails) GetMaskReason() string {
+	if x != nil {
+		return x.MaskReason
+	}
+	return ""
+}
+
+func (x *InterfaceDetails) GetJsonData() string {
+	if x != nil {
+		return x.JsonData
+	}
+	return ""
+}
+
+func (x *InterfaceDetails) GetTableData() string {
+	if x != nil {
+		return x.TableData
+	}
+	return ""
+}
+
+type PFQuery struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PfInterface   string                 `protobuf:"bytes,1,opt,name=pf_interface,json=pfInterface,proto3" json:"pf_interface,omitempty"`
+	OutputFormat  string                 `protobuf:"bytes,2,opt,name=output_format,json=outputFormat,proto3" json:"output_format,omitempty"` // "json" or "table"
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PFQuery) Reset() {
+	*x = PFQuery{}
+	mi := &file_proto_sriov_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PFQuery) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PFQuery) ProtoMessage() {}
+
+func (x *PFQuery) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_sriov_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PFQuery.ProtoReflect.Descriptor instead.
+func (*PFQuery) Descriptor() ([]byte, []int) {
+	return file_proto_sriov_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *PFQuery) GetPfInterface() string {
+	if x != nil {
+		return x.PfInterface
+	}
+	return ""
+}
+
+func (x *PFQuery) GetOutputFormat() string {
+	if x != nil {
+		return x.OutputFormat
+	}
+	return ""
+}
+
+type PFHierarchy struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PfInterface   string                 `protobuf:"bytes,1,opt,name=pf_interface,json=pfInterface,proto3" json:"pf_interface,omitempty"`
+	PfPci         string                 `protobuf:"bytes,2,opt,name=pf_pci,json=pfPci,proto3" json:"pf_pci,omitempty"`
+	PfDetails     *InterfaceDetails      `protobuf:"bytes,3,opt,name=pf_details,json=pfDetails,proto3" json:"pf_details,omitempty"`
+	Vfs           []*InterfaceDetails    `protobuf:"bytes,4,rep,name=vfs,proto3" json:"vfs,omitempty"`
+	JsonData      string                 `protobuf:"bytes,5,opt,name=json_data,json=jsonData,proto3" json:"json_data,omitempty"`
+	TableData     string                 `protobuf:"bytes,6,opt,name=table_data,json=tableData,proto3" json:"table_data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PFHierarchy) Reset() {
+	*x = PFHierarchy{}
+	mi := &file_proto_sriov_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PFHierarchy) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PFHierarchy) ProtoMessage() {}
+
+func (x *PFHierarchy) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_sriov_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PFHierarchy.ProtoReflect.Descriptor instead.
+func (*PFHierarchy) Descriptor() ([]byte, []int) {
+	return file_proto_sriov_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *PFHierarchy) GetPfInterface() string {
+	if x != nil {
+		return x.PfInterface
+	}
+	return ""
+}
+
+func (x *PFHierarchy) GetPfPci() string {
+	if x != nil {
+		return x.PfPci
+	}
+	return ""
+}
+
+func (x *PFHierarchy) GetPfDetails() *InterfaceDetails {
+	if x != nil {
+		return x.PfDetails
+	}
+	return nil
+}
+
+func (x *PFHierarchy) GetVfs() []*InterfaceDetails {
+	if x != nil {
+		return x.Vfs
+	}
+	return nil
+}
+
+func (x *PFHierarchy) GetJsonData() string {
+	if x != nil {
+		return x.JsonData
+	}
+	return ""
+}
+
+func (x *PFHierarchy) GetTableData() string {
+	if x != nil {
+		return x.TableData
+	}
+	return ""
+}
+
 var File_proto_sriov_proto protoreflect.FileDescriptor
 
 const file_proto_sriov_proto_rawDesc = "" +
@@ -1269,7 +1621,53 @@ const file_proto_sriov_proto_rawDesc = "" +
 	"\rInterfaceDump\x12\x1b\n" +
 	"\tjson_data\x18\x01 \x01(\tR\bjsonData\x12\x1c\n" +
 	"\ttimestamp\x18\x02 \x01(\tR\ttimestamp\x12\x18\n" +
-	"\aversion\x18\x03 \x01(\tR\aversion2\xf9\x03\n" +
+	"\aversion\x18\x03 \x01(\tR\aversion\"\\\n" +
+	"\x0eInterfaceQuery\x12%\n" +
+	"\x0einterface_name\x18\x01 \x01(\tR\rinterfaceName\x12#\n" +
+	"\routput_format\x18\x02 \x01(\tR\foutputFormat\"\xc0\x05\n" +
+	"\x10InterfaceDetails\x12%\n" +
+	"\x0einterface_name\x18\x01 \x01(\tR\rinterfaceName\x12\x1f\n" +
+	"\vpci_address\x18\x02 \x01(\tR\n" +
+	"pciAddress\x12%\n" +
+	"\x0einterface_type\x18\x03 \x01(\tR\rinterfaceType\x12\x1b\n" +
+	"\tparent_pf\x18\x04 \x01(\tR\bparentPf\x12\x16\n" +
+	"\x06driver\x18\x05 \x01(\tR\x06driver\x12\x1b\n" +
+	"\tnuma_node\x18\x06 \x01(\tR\bnumaNode\x12\x1d\n" +
+	"\n" +
+	"link_state\x18\a \x01(\tR\tlinkState\x12\x1d\n" +
+	"\n" +
+	"link_speed\x18\b \x01(\tR\tlinkSpeed\x12A\n" +
+	"\bfeatures\x18\t \x03(\v2%.sriov.InterfaceDetails.FeaturesEntryR\bfeatures\x12G\n" +
+	"\n" +
+	"properties\x18\n" +
+	" \x03(\v2'.sriov.InterfaceDetails.PropertiesEntryR\n" +
+	"properties\x12\x12\n" +
+	"\x04pool\x18\v \x01(\tR\x04pool\x12\x1c\n" +
+	"\tallocated\x18\f \x01(\bR\tallocated\x12\x16\n" +
+	"\x06masked\x18\r \x01(\bR\x06masked\x12\x1f\n" +
+	"\vmask_reason\x18\x0e \x01(\tR\n" +
+	"maskReason\x12\x1b\n" +
+	"\tjson_data\x18\x0f \x01(\tR\bjsonData\x12\x1d\n" +
+	"\n" +
+	"table_data\x18\x10 \x01(\tR\ttableData\x1a;\n" +
+	"\rFeaturesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x01\x1a=\n" +
+	"\x0fPropertiesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"Q\n" +
+	"\aPFQuery\x12!\n" +
+	"\fpf_interface\x18\x01 \x01(\tR\vpfInterface\x12#\n" +
+	"\routput_format\x18\x02 \x01(\tR\foutputFormat\"\xe6\x01\n" +
+	"\vPFHierarchy\x12!\n" +
+	"\fpf_interface\x18\x01 \x01(\tR\vpfInterface\x12\x15\n" +
+	"\x06pf_pci\x18\x02 \x01(\tR\x05pfPci\x126\n" +
+	"\n" +
+	"pf_details\x18\x03 \x01(\v2\x17.sriov.InterfaceDetailsR\tpfDetails\x12)\n" +
+	"\x03vfs\x18\x04 \x03(\v2\x17.sriov.InterfaceDetailsR\x03vfs\x12\x1b\n" +
+	"\tjson_data\x18\x05 \x01(\tR\bjsonData\x12\x1d\n" +
+	"\n" +
+	"table_data\x18\x06 \x01(\tR\ttableData2\xf6\x04\n" +
 	"\x12SriovDeviceManager\x12.\n" +
 	"\vListDevices\x12\f.sriov.Empty\x1a\x11.sriov.DeviceList\x12B\n" +
 	"\vAllocateVFs\x12\x18.sriov.AllocationRequest\x1a\x19.sriov.AllocationResponse\x12;\n" +
@@ -1280,7 +1678,9 @@ const file_proto_sriov_proto_rawDesc = "" +
 	"\tGetStatus\x12\f.sriov.Empty\x1a\x13.sriov.StatusReport\x12*\n" +
 	"\tListPools\x12\f.sriov.Empty\x1a\x0f.sriov.PoolList\x124\n" +
 	"\rGetPoolConfig\x12\x10.sriov.PoolQuery\x1a\x11.sriov.PoolConfig\x124\n" +
-	"\x0eDumpInterfaces\x12\f.sriov.Empty\x1a\x14.sriov.InterfaceDumpB\x14Z\x12sriov-plugin/protob\x06proto3"
+	"\x0eDumpInterfaces\x12\f.sriov.Empty\x1a\x14.sriov.InterfaceDump\x12E\n" +
+	"\x13GetInterfaceDetails\x12\x15.sriov.InterfaceQuery\x1a\x17.sriov.InterfaceDetails\x124\n" +
+	"\x0eGetPFHierarchy\x12\x0e.sriov.PFQuery\x1a\x12.sriov.PFHierarchyB\x14Z\x12sriov-plugin/protob\x06proto3"
 
 var (
 	file_proto_sriov_proto_rawDescOnce sync.Once
@@ -1294,7 +1694,7 @@ func file_proto_sriov_proto_rawDescGZIP() []byte {
 	return file_proto_sriov_proto_rawDescData
 }
 
-var file_proto_sriov_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_proto_sriov_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_proto_sriov_proto_goTypes = []any{
 	(*Empty)(nil),              // 0: sriov.Empty
 	(*VF)(nil),                 // 1: sriov.VF
@@ -1314,37 +1714,51 @@ var file_proto_sriov_proto_goTypes = []any{
 	(*PoolConfig)(nil),         // 15: sriov.PoolConfig
 	(*PoolList)(nil),           // 16: sriov.PoolList
 	(*InterfaceDump)(nil),      // 17: sriov.InterfaceDump
-	nil,                        // 18: sriov.VF.FeaturesEntry
+	(*InterfaceQuery)(nil),     // 18: sriov.InterfaceQuery
+	(*InterfaceDetails)(nil),   // 19: sriov.InterfaceDetails
+	(*PFQuery)(nil),            // 20: sriov.PFQuery
+	(*PFHierarchy)(nil),        // 21: sriov.PFHierarchy
+	nil,                        // 22: sriov.VF.FeaturesEntry
+	nil,                        // 23: sriov.InterfaceDetails.FeaturesEntry
+	nil,                        // 24: sriov.InterfaceDetails.PropertiesEntry
 }
 var file_proto_sriov_proto_depIdxs = []int32{
-	18, // 0: sriov.VF.features:type_name -> sriov.VF.FeaturesEntry
+	22, // 0: sriov.VF.features:type_name -> sriov.VF.FeaturesEntry
 	1,  // 1: sriov.PF.vfs:type_name -> sriov.VF
 	2,  // 2: sriov.DeviceList.pfs:type_name -> sriov.PF
 	1,  // 3: sriov.AllocationResponse.allocated_vfs:type_name -> sriov.VF
 	12, // 4: sriov.StatusReport.pools:type_name -> sriov.PoolSummary
-	0,  // 5: sriov.SriovDeviceManager.ListDevices:input_type -> sriov.Empty
-	4,  // 6: sriov.SriovDeviceManager.AllocateVFs:input_type -> sriov.AllocationRequest
-	6,  // 7: sriov.SriovDeviceManager.ReleaseVFs:input_type -> sriov.ReleaseRequest
-	8,  // 8: sriov.SriovDeviceManager.MaskVF:input_type -> sriov.MaskRequest
-	10, // 9: sriov.SriovDeviceManager.UnmaskVF:input_type -> sriov.UnmaskRequest
-	0,  // 10: sriov.SriovDeviceManager.GetStatus:input_type -> sriov.Empty
-	0,  // 11: sriov.SriovDeviceManager.ListPools:input_type -> sriov.Empty
-	14, // 12: sriov.SriovDeviceManager.GetPoolConfig:input_type -> sriov.PoolQuery
-	0,  // 13: sriov.SriovDeviceManager.DumpInterfaces:input_type -> sriov.Empty
-	3,  // 14: sriov.SriovDeviceManager.ListDevices:output_type -> sriov.DeviceList
-	5,  // 15: sriov.SriovDeviceManager.AllocateVFs:output_type -> sriov.AllocationResponse
-	7,  // 16: sriov.SriovDeviceManager.ReleaseVFs:output_type -> sriov.ReleaseResponse
-	9,  // 17: sriov.SriovDeviceManager.MaskVF:output_type -> sriov.MaskResponse
-	11, // 18: sriov.SriovDeviceManager.UnmaskVF:output_type -> sriov.UnmaskResponse
-	13, // 19: sriov.SriovDeviceManager.GetStatus:output_type -> sriov.StatusReport
-	16, // 20: sriov.SriovDeviceManager.ListPools:output_type -> sriov.PoolList
-	15, // 21: sriov.SriovDeviceManager.GetPoolConfig:output_type -> sriov.PoolConfig
-	17, // 22: sriov.SriovDeviceManager.DumpInterfaces:output_type -> sriov.InterfaceDump
-	14, // [14:23] is the sub-list for method output_type
-	5,  // [5:14] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	23, // 5: sriov.InterfaceDetails.features:type_name -> sriov.InterfaceDetails.FeaturesEntry
+	24, // 6: sriov.InterfaceDetails.properties:type_name -> sriov.InterfaceDetails.PropertiesEntry
+	19, // 7: sriov.PFHierarchy.pf_details:type_name -> sriov.InterfaceDetails
+	19, // 8: sriov.PFHierarchy.vfs:type_name -> sriov.InterfaceDetails
+	0,  // 9: sriov.SriovDeviceManager.ListDevices:input_type -> sriov.Empty
+	4,  // 10: sriov.SriovDeviceManager.AllocateVFs:input_type -> sriov.AllocationRequest
+	6,  // 11: sriov.SriovDeviceManager.ReleaseVFs:input_type -> sriov.ReleaseRequest
+	8,  // 12: sriov.SriovDeviceManager.MaskVF:input_type -> sriov.MaskRequest
+	10, // 13: sriov.SriovDeviceManager.UnmaskVF:input_type -> sriov.UnmaskRequest
+	0,  // 14: sriov.SriovDeviceManager.GetStatus:input_type -> sriov.Empty
+	0,  // 15: sriov.SriovDeviceManager.ListPools:input_type -> sriov.Empty
+	14, // 16: sriov.SriovDeviceManager.GetPoolConfig:input_type -> sriov.PoolQuery
+	0,  // 17: sriov.SriovDeviceManager.DumpInterfaces:input_type -> sriov.Empty
+	18, // 18: sriov.SriovDeviceManager.GetInterfaceDetails:input_type -> sriov.InterfaceQuery
+	20, // 19: sriov.SriovDeviceManager.GetPFHierarchy:input_type -> sriov.PFQuery
+	3,  // 20: sriov.SriovDeviceManager.ListDevices:output_type -> sriov.DeviceList
+	5,  // 21: sriov.SriovDeviceManager.AllocateVFs:output_type -> sriov.AllocationResponse
+	7,  // 22: sriov.SriovDeviceManager.ReleaseVFs:output_type -> sriov.ReleaseResponse
+	9,  // 23: sriov.SriovDeviceManager.MaskVF:output_type -> sriov.MaskResponse
+	11, // 24: sriov.SriovDeviceManager.UnmaskVF:output_type -> sriov.UnmaskResponse
+	13, // 25: sriov.SriovDeviceManager.GetStatus:output_type -> sriov.StatusReport
+	16, // 26: sriov.SriovDeviceManager.ListPools:output_type -> sriov.PoolList
+	15, // 27: sriov.SriovDeviceManager.GetPoolConfig:output_type -> sriov.PoolConfig
+	17, // 28: sriov.SriovDeviceManager.DumpInterfaces:output_type -> sriov.InterfaceDump
+	19, // 29: sriov.SriovDeviceManager.GetInterfaceDetails:output_type -> sriov.InterfaceDetails
+	21, // 30: sriov.SriovDeviceManager.GetPFHierarchy:output_type -> sriov.PFHierarchy
+	20, // [20:31] is the sub-list for method output_type
+	9,  // [9:20] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_proto_sriov_proto_init() }
@@ -1358,7 +1772,7 @@ func file_proto_sriov_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_sriov_proto_rawDesc), len(file_proto_sriov_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   19,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
