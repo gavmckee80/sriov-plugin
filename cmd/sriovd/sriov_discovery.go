@@ -233,9 +233,10 @@ func (s *server) discoverVFsForPF(pfPCI string, pfInfo *types.PFInfo) {
 				DeviceName:       getPCIVendorDeviceInfo(getVendorID(vfPCI), getDeviceID(vfPCI), getSubsysVendor(vfPCI), getSubsysDevice(vfPCI)).DeviceName,
 				SubsysVendorName: getPCIVendorDeviceInfo(getVendorID(vfPCI), getDeviceID(vfPCI), getSubsysVendor(vfPCI), getSubsysDevice(vfPCI)).SubsysVendorName,
 				SubsysDeviceName: getPCIVendorDeviceInfo(getVendorID(vfPCI), getDeviceID(vfPCI), getSubsysVendor(vfPCI), getSubsysDevice(vfPCI)).SubsysDeviceName,
-				Allocated:        false,
-				Masked:           false,
-				Pool:             "",
+
+				Allocated: false,
+				Masked:    false,
+				Pool:      "",
 			}
 
 			pfInfo.VFs[vfPCI] = vfInfo

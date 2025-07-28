@@ -3,6 +3,7 @@ module sriov-plugin
 go 1.24.5
 
 require (
+	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/safchain/ethtool v0.6.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect

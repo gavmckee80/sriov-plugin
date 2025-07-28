@@ -1,304 +1,330 @@
-time="2025-07-28T19:40:28Z" level=info msg="Starting SR-IOV device discovery"
-time="2025-07-28T19:40:28Z" level=info msg="scanning PCI devices" total_devices=546
-time="2025-07-28T19:40:28Z" level=info msg="starting device scan loop"
-time="2025-07-28T19:40:28Z" level=debug msg="found SR-IOV capable device" pci="0000:05:00.0"
-time="2025-07-28T19:40:28Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface= pf="0000:05:00.0" total_vfs=1
-time="2025-07-28T19:40:28Z" level=debug msg="found SR-IOV capable device" pci="0000:09:00.0"
-time="2025-07-28T19:40:28Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=enp9s0np0 pf="0000:09:00.0" total_vfs=1
-time="2025-07-28T19:40:28Z" level=debug msg="found SR-IOV capable device" pci="0000:26:00.0"
-time="2025-07-28T19:40:28Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=enp38s0np0 pf="0000:26:00.0" total_vfs=1
-time="2025-07-28T19:40:28Z" level=debug msg="found SR-IOV capable device" pci="0000:29:00.0"
-time="2025-07-28T19:40:28Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface= pf="0000:29:00.0" total_vfs=1
-time="2025-07-28T19:40:28Z" level=debug msg="found SR-IOV capable device" pci="0000:31:00.0"
-time="2025-07-28T19:40:28Z" level=info msg="discovered SR-IOV PF" enabled_vfs=127 interface=ens60f0np0 pf="0000:31:00.0" total_vfs=127
-time="2025-07-28T19:40:28Z" level=info msg="discovering VFs" pf="0000:31:00.0"
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v0 pf="0000:31:00.0" vf="0000:31:00.2" vf_index=0
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v1 pf="0000:31:00.0" vf="0000:31:00.3" vf_index=1
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v10 pf="0000:31:00.0" vf="0000:31:01.4" vf_index=10
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v100 pf="0000:31:00.0" vf="0000:31:0c.6" vf_index=100
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v101 pf="0000:31:00.0" vf="0000:31:0c.7" vf_index=101
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v102 pf="0000:31:00.0" vf="0000:31:0d.0" vf_index=102
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v103 pf="0000:31:00.0" vf="0000:31:0d.1" vf_index=103
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v104 pf="0000:31:00.0" vf="0000:31:0d.2" vf_index=104
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v105 pf="0000:31:00.0" vf="0000:31:0d.3" vf_index=105
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v106 pf="0000:31:00.0" vf="0000:31:0d.4" vf_index=106
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v107 pf="0000:31:00.0" vf="0000:31:0d.5" vf_index=107
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v108 pf="0000:31:00.0" vf="0000:31:0d.6" vf_index=108
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v109 pf="0000:31:00.0" vf="0000:31:0d.7" vf_index=109
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v11 pf="0000:31:00.0" vf="0000:31:01.5" vf_index=11
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v110 pf="0000:31:00.0" vf="0000:31:0e.0" vf_index=110
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v111 pf="0000:31:00.0" vf="0000:31:0e.1" vf_index=111
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v112 pf="0000:31:00.0" vf="0000:31:0e.2" vf_index=112
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v113 pf="0000:31:00.0" vf="0000:31:0e.3" vf_index=113
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v114 pf="0000:31:00.0" vf="0000:31:0e.4" vf_index=114
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v115 pf="0000:31:00.0" vf="0000:31:0e.5" vf_index=115
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v116 pf="0000:31:00.0" vf="0000:31:0e.6" vf_index=116
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v117 pf="0000:31:00.0" vf="0000:31:0e.7" vf_index=117
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v118 pf="0000:31:00.0" vf="0000:31:0f.0" vf_index=118
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v119 pf="0000:31:00.0" vf="0000:31:0f.1" vf_index=119
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v12 pf="0000:31:00.0" vf="0000:31:01.6" vf_index=12
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v120 pf="0000:31:00.0" vf="0000:31:0f.2" vf_index=120
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v121 pf="0000:31:00.0" vf="0000:31:0f.3" vf_index=121
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v122 pf="0000:31:00.0" vf="0000:31:0f.4" vf_index=122
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v123 pf="0000:31:00.0" vf="0000:31:0f.5" vf_index=123
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v124 pf="0000:31:00.0" vf="0000:31:0f.6" vf_index=124
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v125 pf="0000:31:00.0" vf="0000:31:0f.7" vf_index=125
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v126 pf="0000:31:00.0" vf="0000:31:10.0" vf_index=126
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v13 pf="0000:31:00.0" vf="0000:31:01.7" vf_index=13
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v14 pf="0000:31:00.0" vf="0000:31:02.0" vf_index=14
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v15 pf="0000:31:00.0" vf="0000:31:02.1" vf_index=15
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v16 pf="0000:31:00.0" vf="0000:31:02.2" vf_index=16
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v17 pf="0000:31:00.0" vf="0000:31:02.3" vf_index=17
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v18 pf="0000:31:00.0" vf="0000:31:02.4" vf_index=18
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v19 pf="0000:31:00.0" vf="0000:31:02.5" vf_index=19
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v2 pf="0000:31:00.0" vf="0000:31:00.4" vf_index=2
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v20 pf="0000:31:00.0" vf="0000:31:02.6" vf_index=20
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v21 pf="0000:31:00.0" vf="0000:31:02.7" vf_index=21
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v22 pf="0000:31:00.0" vf="0000:31:03.0" vf_index=22
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v23 pf="0000:31:00.0" vf="0000:31:03.1" vf_index=23
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v24 pf="0000:31:00.0" vf="0000:31:03.2" vf_index=24
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v25 pf="0000:31:00.0" vf="0000:31:03.3" vf_index=25
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v26 pf="0000:31:00.0" vf="0000:31:03.4" vf_index=26
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v27 pf="0000:31:00.0" vf="0000:31:03.5" vf_index=27
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v28 pf="0000:31:00.0" vf="0000:31:03.6" vf_index=28
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v29 pf="0000:31:00.0" vf="0000:31:03.7" vf_index=29
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v3 pf="0000:31:00.0" vf="0000:31:00.5" vf_index=3
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v30 pf="0000:31:00.0" vf="0000:31:04.0" vf_index=30
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v31 pf="0000:31:00.0" vf="0000:31:04.1" vf_index=31
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v32 pf="0000:31:00.0" vf="0000:31:04.2" vf_index=32
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v33 pf="0000:31:00.0" vf="0000:31:04.3" vf_index=33
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v34 pf="0000:31:00.0" vf="0000:31:04.4" vf_index=34
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v35 pf="0000:31:00.0" vf="0000:31:04.5" vf_index=35
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v36 pf="0000:31:00.0" vf="0000:31:04.6" vf_index=36
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v37 pf="0000:31:00.0" vf="0000:31:04.7" vf_index=37
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v38 pf="0000:31:00.0" vf="0000:31:05.0" vf_index=38
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v39 pf="0000:31:00.0" vf="0000:31:05.1" vf_index=39
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v4 pf="0000:31:00.0" vf="0000:31:00.6" vf_index=4
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v40 pf="0000:31:00.0" vf="0000:31:05.2" vf_index=40
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v41 pf="0000:31:00.0" vf="0000:31:05.3" vf_index=41
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v42 pf="0000:31:00.0" vf="0000:31:05.4" vf_index=42
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v43 pf="0000:31:00.0" vf="0000:31:05.5" vf_index=43
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v44 pf="0000:31:00.0" vf="0000:31:05.6" vf_index=44
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v45 pf="0000:31:00.0" vf="0000:31:05.7" vf_index=45
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v46 pf="0000:31:00.0" vf="0000:31:06.0" vf_index=46
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v47 pf="0000:31:00.0" vf="0000:31:06.1" vf_index=47
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v48 pf="0000:31:00.0" vf="0000:31:06.2" vf_index=48
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v49 pf="0000:31:00.0" vf="0000:31:06.3" vf_index=49
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v5 pf="0000:31:00.0" vf="0000:31:00.7" vf_index=5
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v50 pf="0000:31:00.0" vf="0000:31:06.4" vf_index=50
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v51 pf="0000:31:00.0" vf="0000:31:06.5" vf_index=51
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v52 pf="0000:31:00.0" vf="0000:31:06.6" vf_index=52
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v53 pf="0000:31:00.0" vf="0000:31:06.7" vf_index=53
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v54 pf="0000:31:00.0" vf="0000:31:07.0" vf_index=54
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v55 pf="0000:31:00.0" vf="0000:31:07.1" vf_index=55
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v56 pf="0000:31:00.0" vf="0000:31:07.2" vf_index=56
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v57 pf="0000:31:00.0" vf="0000:31:07.3" vf_index=57
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v58 pf="0000:31:00.0" vf="0000:31:07.4" vf_index=58
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v59 pf="0000:31:00.0" vf="0000:31:07.5" vf_index=59
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v6 pf="0000:31:00.0" vf="0000:31:01.0" vf_index=6
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v60 pf="0000:31:00.0" vf="0000:31:07.6" vf_index=60
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v61 pf="0000:31:00.0" vf="0000:31:07.7" vf_index=61
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v62 pf="0000:31:00.0" vf="0000:31:08.0" vf_index=62
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v63 pf="0000:31:00.0" vf="0000:31:08.1" vf_index=63
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v64 pf="0000:31:00.0" vf="0000:31:08.2" vf_index=64
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v65 pf="0000:31:00.0" vf="0000:31:08.3" vf_index=65
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v66 pf="0000:31:00.0" vf="0000:31:08.4" vf_index=66
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v67 pf="0000:31:00.0" vf="0000:31:08.5" vf_index=67
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v68 pf="0000:31:00.0" vf="0000:31:08.6" vf_index=68
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v69 pf="0000:31:00.0" vf="0000:31:08.7" vf_index=69
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v7 pf="0000:31:00.0" vf="0000:31:01.1" vf_index=7
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v70 pf="0000:31:00.0" vf="0000:31:09.0" vf_index=70
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v71 pf="0000:31:00.0" vf="0000:31:09.1" vf_index=71
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v72 pf="0000:31:00.0" vf="0000:31:09.2" vf_index=72
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v73 pf="0000:31:00.0" vf="0000:31:09.3" vf_index=73
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v74 pf="0000:31:00.0" vf="0000:31:09.4" vf_index=74
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v75 pf="0000:31:00.0" vf="0000:31:09.5" vf_index=75
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v76 pf="0000:31:00.0" vf="0000:31:09.6" vf_index=76
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v77 pf="0000:31:00.0" vf="0000:31:09.7" vf_index=77
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v78 pf="0000:31:00.0" vf="0000:31:0a.0" vf_index=78
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v79 pf="0000:31:00.0" vf="0000:31:0a.1" vf_index=79
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v8 pf="0000:31:00.0" vf="0000:31:01.2" vf_index=8
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v80 pf="0000:31:00.0" vf="0000:31:0a.2" vf_index=80
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v81 pf="0000:31:00.0" vf="0000:31:0a.3" vf_index=81
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v82 pf="0000:31:00.0" vf="0000:31:0a.4" vf_index=82
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v83 pf="0000:31:00.0" vf="0000:31:0a.5" vf_index=83
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v84 pf="0000:31:00.0" vf="0000:31:0a.6" vf_index=84
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v85 pf="0000:31:00.0" vf="0000:31:0a.7" vf_index=85
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v86 pf="0000:31:00.0" vf="0000:31:0b.0" vf_index=86
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v87 pf="0000:31:00.0" vf="0000:31:0b.1" vf_index=87
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v88 pf="0000:31:00.0" vf="0000:31:0b.2" vf_index=88
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v89 pf="0000:31:00.0" vf="0000:31:0b.3" vf_index=89
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v9 pf="0000:31:00.0" vf="0000:31:01.3" vf_index=9
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v90 pf="0000:31:00.0" vf="0000:31:0b.4" vf_index=90
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v91 pf="0000:31:00.0" vf="0000:31:0b.5" vf_index=91
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v92 pf="0000:31:00.0" vf="0000:31:0b.6" vf_index=92
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v93 pf="0000:31:00.0" vf="0000:31:0b.7" vf_index=93
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v94 pf="0000:31:00.0" vf="0000:31:0c.0" vf_index=94
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v95 pf="0000:31:00.0" vf="0000:31:0c.1" vf_index=95
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v96 pf="0000:31:00.0" vf="0000:31:0c.2" vf_index=96
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v97 pf="0000:31:00.0" vf="0000:31:0c.3" vf_index=97
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v98 pf="0000:31:00.0" vf="0000:31:0c.4" vf_index=98
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f0v99 pf="0000:31:00.0" vf="0000:31:0c.5" vf_index=99
-time="2025-07-28T19:40:28Z" level=info msg="VF discovery completed for PF" pf="0000:31:00.0" vf_count=127
-time="2025-07-28T19:40:28Z" level=debug msg="found SR-IOV capable device" pci="0000:31:00.1"
-time="2025-07-28T19:40:28Z" level=info msg="discovered SR-IOV PF" enabled_vfs=127 interface=ens60f1np1 pf="0000:31:00.1" total_vfs=127
-time="2025-07-28T19:40:28Z" level=info msg="discovering VFs" pf="0000:31:00.1"
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f1v0 pf="0000:31:00.1" vf="0000:31:10.1" vf_index=0
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f1v1 pf="0000:31:00.1" vf="0000:31:10.2" vf_index=1
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f1v10 pf="0000:31:00.1" vf="0000:31:11.3" vf_index=10
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f1v100 pf="0000:31:00.1" vf="0000:31:1c.5" vf_index=100
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f1v101 pf="0000:31:00.1" vf="0000:31:1c.6" vf_index=101
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f1v102 pf="0000:31:00.1" vf="0000:31:1c.7" vf_index=102
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f1v103 pf="0000:31:00.1" vf="0000:31:1d.0" vf_index=103
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f1v104 pf="0000:31:00.1" vf="0000:31:1d.1" vf_index=104
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f1v105 pf="0000:31:00.1" vf="0000:31:1d.2" vf_index=105
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f1v106 pf="0000:31:00.1" vf="0000:31:1d.3" vf_index=106
-time="2025-07-28T19:40:28Z" level=debug msg="discovered VF" interface=ens60f1v107 pf="0000:31:00.1" vf="0000:31:1d.4" vf_index=107
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v108 pf="0000:31:00.1" vf="0000:31:1d.5" vf_index=108
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v109 pf="0000:31:00.1" vf="0000:31:1d.6" vf_index=109
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v11 pf="0000:31:00.1" vf="0000:31:11.4" vf_index=11
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v110 pf="0000:31:00.1" vf="0000:31:1d.7" vf_index=110
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v111 pf="0000:31:00.1" vf="0000:31:1e.0" vf_index=111
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v112 pf="0000:31:00.1" vf="0000:31:1e.1" vf_index=112
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v113 pf="0000:31:00.1" vf="0000:31:1e.2" vf_index=113
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v114 pf="0000:31:00.1" vf="0000:31:1e.3" vf_index=114
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v115 pf="0000:31:00.1" vf="0000:31:1e.4" vf_index=115
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v116 pf="0000:31:00.1" vf="0000:31:1e.5" vf_index=116
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v117 pf="0000:31:00.1" vf="0000:31:1e.6" vf_index=117
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v118 pf="0000:31:00.1" vf="0000:31:1e.7" vf_index=118
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v119 pf="0000:31:00.1" vf="0000:31:1f.0" vf_index=119
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v12 pf="0000:31:00.1" vf="0000:31:11.5" vf_index=12
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v120 pf="0000:31:00.1" vf="0000:31:1f.1" vf_index=120
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v121 pf="0000:31:00.1" vf="0000:31:1f.2" vf_index=121
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v122 pf="0000:31:00.1" vf="0000:31:1f.3" vf_index=122
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v123 pf="0000:31:00.1" vf="0000:31:1f.4" vf_index=123
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v124 pf="0000:31:00.1" vf="0000:31:1f.5" vf_index=124
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v125 pf="0000:31:00.1" vf="0000:31:1f.6" vf_index=125
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v126 pf="0000:31:00.1" vf="0000:31:1f.7" vf_index=126
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v13 pf="0000:31:00.1" vf="0000:31:11.6" vf_index=13
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v14 pf="0000:31:00.1" vf="0000:31:11.7" vf_index=14
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v15 pf="0000:31:00.1" vf="0000:31:12.0" vf_index=15
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v16 pf="0000:31:00.1" vf="0000:31:12.1" vf_index=16
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v17 pf="0000:31:00.1" vf="0000:31:12.2" vf_index=17
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v18 pf="0000:31:00.1" vf="0000:31:12.3" vf_index=18
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v19 pf="0000:31:00.1" vf="0000:31:12.4" vf_index=19
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v2 pf="0000:31:00.1" vf="0000:31:10.3" vf_index=2
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v20 pf="0000:31:00.1" vf="0000:31:12.5" vf_index=20
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v21 pf="0000:31:00.1" vf="0000:31:12.6" vf_index=21
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v22 pf="0000:31:00.1" vf="0000:31:12.7" vf_index=22
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v23 pf="0000:31:00.1" vf="0000:31:13.0" vf_index=23
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v24 pf="0000:31:00.1" vf="0000:31:13.1" vf_index=24
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v25 pf="0000:31:00.1" vf="0000:31:13.2" vf_index=25
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v26 pf="0000:31:00.1" vf="0000:31:13.3" vf_index=26
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v27 pf="0000:31:00.1" vf="0000:31:13.4" vf_index=27
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v28 pf="0000:31:00.1" vf="0000:31:13.5" vf_index=28
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v29 pf="0000:31:00.1" vf="0000:31:13.6" vf_index=29
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v3 pf="0000:31:00.1" vf="0000:31:10.4" vf_index=3
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v30 pf="0000:31:00.1" vf="0000:31:13.7" vf_index=30
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v31 pf="0000:31:00.1" vf="0000:31:14.0" vf_index=31
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v32 pf="0000:31:00.1" vf="0000:31:14.1" vf_index=32
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v33 pf="0000:31:00.1" vf="0000:31:14.2" vf_index=33
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v34 pf="0000:31:00.1" vf="0000:31:14.3" vf_index=34
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v35 pf="0000:31:00.1" vf="0000:31:14.4" vf_index=35
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v36 pf="0000:31:00.1" vf="0000:31:14.5" vf_index=36
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v37 pf="0000:31:00.1" vf="0000:31:14.6" vf_index=37
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v38 pf="0000:31:00.1" vf="0000:31:14.7" vf_index=38
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v39 pf="0000:31:00.1" vf="0000:31:15.0" vf_index=39
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v4 pf="0000:31:00.1" vf="0000:31:10.5" vf_index=4
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v40 pf="0000:31:00.1" vf="0000:31:15.1" vf_index=40
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v41 pf="0000:31:00.1" vf="0000:31:15.2" vf_index=41
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v42 pf="0000:31:00.1" vf="0000:31:15.3" vf_index=42
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v43 pf="0000:31:00.1" vf="0000:31:15.4" vf_index=43
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v44 pf="0000:31:00.1" vf="0000:31:15.5" vf_index=44
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v45 pf="0000:31:00.1" vf="0000:31:15.6" vf_index=45
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v46 pf="0000:31:00.1" vf="0000:31:15.7" vf_index=46
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v47 pf="0000:31:00.1" vf="0000:31:16.0" vf_index=47
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v48 pf="0000:31:00.1" vf="0000:31:16.1" vf_index=48
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v49 pf="0000:31:00.1" vf="0000:31:16.2" vf_index=49
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v5 pf="0000:31:00.1" vf="0000:31:10.6" vf_index=5
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v50 pf="0000:31:00.1" vf="0000:31:16.3" vf_index=50
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v51 pf="0000:31:00.1" vf="0000:31:16.4" vf_index=51
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v52 pf="0000:31:00.1" vf="0000:31:16.5" vf_index=52
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v53 pf="0000:31:00.1" vf="0000:31:16.6" vf_index=53
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v54 pf="0000:31:00.1" vf="0000:31:16.7" vf_index=54
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v55 pf="0000:31:00.1" vf="0000:31:17.0" vf_index=55
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v56 pf="0000:31:00.1" vf="0000:31:17.1" vf_index=56
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v57 pf="0000:31:00.1" vf="0000:31:17.2" vf_index=57
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v58 pf="0000:31:00.1" vf="0000:31:17.3" vf_index=58
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v59 pf="0000:31:00.1" vf="0000:31:17.4" vf_index=59
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v6 pf="0000:31:00.1" vf="0000:31:10.7" vf_index=6
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v60 pf="0000:31:00.1" vf="0000:31:17.5" vf_index=60
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v61 pf="0000:31:00.1" vf="0000:31:17.6" vf_index=61
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v62 pf="0000:31:00.1" vf="0000:31:17.7" vf_index=62
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v63 pf="0000:31:00.1" vf="0000:31:18.0" vf_index=63
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v64 pf="0000:31:00.1" vf="0000:31:18.1" vf_index=64
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v65 pf="0000:31:00.1" vf="0000:31:18.2" vf_index=65
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v66 pf="0000:31:00.1" vf="0000:31:18.3" vf_index=66
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v67 pf="0000:31:00.1" vf="0000:31:18.4" vf_index=67
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v68 pf="0000:31:00.1" vf="0000:31:18.5" vf_index=68
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v69 pf="0000:31:00.1" vf="0000:31:18.6" vf_index=69
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v7 pf="0000:31:00.1" vf="0000:31:11.0" vf_index=7
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v70 pf="0000:31:00.1" vf="0000:31:18.7" vf_index=70
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v71 pf="0000:31:00.1" vf="0000:31:19.0" vf_index=71
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v72 pf="0000:31:00.1" vf="0000:31:19.1" vf_index=72
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v73 pf="0000:31:00.1" vf="0000:31:19.2" vf_index=73
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v74 pf="0000:31:00.1" vf="0000:31:19.3" vf_index=74
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v75 pf="0000:31:00.1" vf="0000:31:19.4" vf_index=75
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v76 pf="0000:31:00.1" vf="0000:31:19.5" vf_index=76
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v77 pf="0000:31:00.1" vf="0000:31:19.6" vf_index=77
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v78 pf="0000:31:00.1" vf="0000:31:19.7" vf_index=78
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v79 pf="0000:31:00.1" vf="0000:31:1a.0" vf_index=79
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v8 pf="0000:31:00.1" vf="0000:31:11.1" vf_index=8
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v80 pf="0000:31:00.1" vf="0000:31:1a.1" vf_index=80
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v81 pf="0000:31:00.1" vf="0000:31:1a.2" vf_index=81
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v82 pf="0000:31:00.1" vf="0000:31:1a.3" vf_index=82
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v83 pf="0000:31:00.1" vf="0000:31:1a.4" vf_index=83
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v84 pf="0000:31:00.1" vf="0000:31:1a.5" vf_index=84
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v85 pf="0000:31:00.1" vf="0000:31:1a.6" vf_index=85
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v86 pf="0000:31:00.1" vf="0000:31:1a.7" vf_index=86
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v87 pf="0000:31:00.1" vf="0000:31:1b.0" vf_index=87
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v88 pf="0000:31:00.1" vf="0000:31:1b.1" vf_index=88
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v89 pf="0000:31:00.1" vf="0000:31:1b.2" vf_index=89
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v9 pf="0000:31:00.1" vf="0000:31:11.2" vf_index=9
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v90 pf="0000:31:00.1" vf="0000:31:1b.3" vf_index=90
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v91 pf="0000:31:00.1" vf="0000:31:1b.4" vf_index=91
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v92 pf="0000:31:00.1" vf="0000:31:1b.5" vf_index=92
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v93 pf="0000:31:00.1" vf="0000:31:1b.6" vf_index=93
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v94 pf="0000:31:00.1" vf="0000:31:1b.7" vf_index=94
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v95 pf="0000:31:00.1" vf="0000:31:1c.0" vf_index=95
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v96 pf="0000:31:00.1" vf="0000:31:1c.1" vf_index=96
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v97 pf="0000:31:00.1" vf="0000:31:1c.2" vf_index=97
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v98 pf="0000:31:00.1" vf="0000:31:1c.3" vf_index=98
-time="2025-07-28T19:40:29Z" level=debug msg="discovered VF" interface=ens60f1v99 pf="0000:31:00.1" vf="0000:31:1c.4" vf_index=99
-time="2025-07-28T19:40:29Z" level=info msg="VF discovery completed for PF" pf="0000:31:00.1" vf_count=127
-time="2025-07-28T19:40:29Z" level=debug msg="found SR-IOV capable device" pci="0000:32:00.0"
-time="2025-07-28T19:40:29Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=ens61f0 pf="0000:32:00.0" total_vfs=7
-time="2025-07-28T19:40:29Z" level=debug msg="found SR-IOV capable device" pci="0000:32:00.1"
-time="2025-07-28T19:40:29Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=ens61f1 pf="0000:32:00.1" total_vfs=7
-time="2025-07-28T19:40:29Z" level=debug msg="found SR-IOV capable device" pci="0000:46:00.0"
-time="2025-07-28T19:40:29Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=enp70s0np0 pf="0000:46:00.0" total_vfs=1
-time="2025-07-28T19:40:29Z" level=debug msg="found SR-IOV capable device" pci="0000:49:00.0"
-time="2025-07-28T19:40:29Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface= pf="0000:49:00.0" total_vfs=1
-time="2025-07-28T19:40:29Z" level=debug msg="found SR-IOV capable device" pci="0000:65:00.0"
-time="2025-07-28T19:40:29Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface= pf="0000:65:00.0" total_vfs=1
-time="2025-07-28T19:40:29Z" level=debug msg="found SR-IOV capable device" pci="0000:69:00.0"
-time="2025-07-28T19:40:29Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=eno1np0 pf="0000:69:00.0" total_vfs=1
-time="2025-07-28T19:40:29Z" level=debug msg="found SR-IOV capable device" pci="0000:85:00.0"
-time="2025-07-28T19:40:29Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface= pf="0000:85:00.0" total_vfs=1
-time="2025-07-28T19:40:29Z" level=debug msg="found SR-IOV capable device" pci="0000:89:00.0"
-time="2025-07-28T19:40:29Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=enp137s0np0 pf="0000:89:00.0" total_vfs=1
-time="2025-07-28T19:40:29Z" level=debug msg="found SR-IOV capable device" pci="0000:a6:00.0"
-time="2025-07-28T19:40:29Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=enp166s0np0 pf="0000:a6:00.0" total_vfs=1
-time="2025-07-28T19:40:29Z" level=debug msg="found SR-IOV capable device" pci="0000:a9:00.0"
-time="2025-07-28T19:40:29Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface= pf="0000:a9:00.0" total_vfs=1
-time="2025-07-28T19:40:29Z" level=debug msg="found SR-IOV capable device" pci="0000:c6:00.0"
-time="2025-07-28T19:40:29Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=enp198s0np0 pf="0000:c6:00.0" total_vfs=1
-time="2025-07-28T19:40:29Z" level=debug msg="found SR-IOV capable device" pci="0000:c9:00.0"
-time="2025-07-28T19:40:29Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface= pf="0000:c9:00.0" total_vfs=1
-time="2025-07-28T19:40:29Z" level=debug msg="found SR-IOV capable device" pci="0000:e5:00.0"
-time="2025-07-28T19:40:29Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface= pf="0000:e5:00.0" total_vfs=1
-time="2025-07-28T19:40:29Z" level=debug msg="found SR-IOV capable device" pci="0000:e9:00.0"
-time="2025-07-28T19:40:29Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=enp233s0np0 pf="0000:e9:00.0" total_vfs=1
-time="2025-07-28T19:40:29Z" level=info msg="SR-IOV discovery completed" pfs=20 vfs=254
-time="2025-07-28T19:40:29Z" level=info msg="Starting SR-IOV management server on :50051"
-time="2025-07-28T19:40:54Z" level=info msg="Shutting down server..."
+time="2025-07-28T20:12:29Z" level=info msg="Starting SR-IOV device discovery"
+time="2025-07-28T20:12:29Z" level=info msg="scanning PCI devices" total_devices=548
+time="2025-07-28T20:12:29Z" level=info msg="starting device scan loop"
+time="2025-07-28T20:12:29Z" level=debug msg="found SR-IOV capable device" pci="0000:05:00.0"
+time="2025-07-28T20:12:29Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface= pf="0000:05:00.0" total_vfs=1
+time="2025-07-28T20:12:29Z" level=debug msg="found SR-IOV capable device" pci="0000:09:00.0"
+time="2025-07-28T20:12:29Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=enp9s0np0 pf="0000:09:00.0" total_vfs=1
+time="2025-07-28T20:12:29Z" level=debug msg="found SR-IOV capable device" pci="0000:26:00.0"
+time="2025-07-28T20:12:30Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=enp38s0np0 pf="0000:26:00.0" total_vfs=1
+time="2025-07-28T20:12:30Z" level=debug msg="found SR-IOV capable device" pci="0000:29:00.0"
+time="2025-07-28T20:12:30Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface= pf="0000:29:00.0" total_vfs=1
+time="2025-07-28T20:12:30Z" level=debug msg="found SR-IOV capable device" pci="0000:31:00.0"
+time="2025-07-28T20:12:30Z" level=info msg="discovered SR-IOV PF" enabled_vfs=127 interface=ens60f0np0 pf="0000:31:00.0" total_vfs=127
+time="2025-07-28T20:12:30Z" level=info msg="discovering VFs" pf="0000:31:00.0"
+time="2025-07-28T20:12:31Z" level=debug msg="discovered VF" interface=ens60f0v0 pf="0000:31:00.0" vf="0000:31:00.2" vf_index=0
+time="2025-07-28T20:12:31Z" level=debug msg="discovered VF" interface=ens60f0v1 pf="0000:31:00.0" vf="0000:31:00.3" vf_index=1
+time="2025-07-28T20:12:32Z" level=debug msg="discovered VF" interface=ens60f0v10 pf="0000:31:00.0" vf="0000:31:01.4" vf_index=10
+time="2025-07-28T20:12:32Z" level=debug msg="discovered VF" interface=ens60f0v100 pf="0000:31:00.0" vf="0000:31:0c.6" vf_index=100
+time="2025-07-28T20:12:32Z" level=debug msg="discovered VF" interface=ens60f0v101 pf="0000:31:00.0" vf="0000:31:0c.7" vf_index=101
+time="2025-07-28T20:12:33Z" level=debug msg="discovered VF" interface=ens60f0v102 pf="0000:31:00.0" vf="0000:31:0d.0" vf_index=102
+time="2025-07-28T20:12:33Z" level=debug msg="discovered VF" interface=ens60f0v103 pf="0000:31:00.0" vf="0000:31:0d.1" vf_index=103
+time="2025-07-28T20:12:34Z" level=debug msg="discovered VF" interface=ens60f0v104 pf="0000:31:00.0" vf="0000:31:0d.2" vf_index=104
+time="2025-07-28T20:12:34Z" level=debug msg="discovered VF" interface=ens60f0v105 pf="0000:31:00.0" vf="0000:31:0d.3" vf_index=105
+time="2025-07-28T20:12:35Z" level=debug msg="discovered VF" interface=ens60f0v106 pf="0000:31:00.0" vf="0000:31:0d.4" vf_index=106
+time="2025-07-28T20:12:35Z" level=debug msg="discovered VF" interface=ens60f0v107 pf="0000:31:00.0" vf="0000:31:0d.5" vf_index=107
+time="2025-07-28T20:12:36Z" level=debug msg="discovered VF" interface=ens60f0v108 pf="0000:31:00.0" vf="0000:31:0d.6" vf_index=108
+time="2025-07-28T20:12:36Z" level=debug msg="discovered VF" interface=ens60f0v109 pf="0000:31:00.0" vf="0000:31:0d.7" vf_index=109
+time="2025-07-28T20:12:36Z" level=debug msg="discovered VF" interface=ens60f0v11 pf="0000:31:00.0" vf="0000:31:01.5" vf_index=11
+time="2025-07-28T20:12:37Z" level=debug msg="discovered VF" interface=ens60f0v110 pf="0000:31:00.0" vf="0000:31:0e.0" vf_index=110
+time="2025-07-28T20:12:37Z" level=debug msg="discovered VF" interface=ens60f0v111 pf="0000:31:00.0" vf="0000:31:0e.1" vf_index=111
+time="2025-07-28T20:12:38Z" level=debug msg="discovered VF" interface=ens60f0v112 pf="0000:31:00.0" vf="0000:31:0e.2" vf_index=112
+time="2025-07-28T20:12:38Z" level=debug msg="discovered VF" interface=ens60f0v113 pf="0000:31:00.0" vf="0000:31:0e.3" vf_index=113
+time="2025-07-28T20:12:39Z" level=debug msg="discovered VF" interface=ens60f0v114 pf="0000:31:00.0" vf="0000:31:0e.4" vf_index=114
+time="2025-07-28T20:12:39Z" level=debug msg="discovered VF" interface=ens60f0v115 pf="0000:31:00.0" vf="0000:31:0e.5" vf_index=115
+time="2025-07-28T20:12:40Z" level=debug msg="discovered VF" interface=ens60f0v116 pf="0000:31:00.0" vf="0000:31:0e.6" vf_index=116
+time="2025-07-28T20:12:40Z" level=debug msg="discovered VF" interface=ens60f0v117 pf="0000:31:00.0" vf="0000:31:0e.7" vf_index=117
+time="2025-07-28T20:12:40Z" level=debug msg="discovered VF" interface=ens60f0v118 pf="0000:31:00.0" vf="0000:31:0f.0" vf_index=118
+time="2025-07-28T20:12:41Z" level=debug msg="discovered VF" interface=ens60f0v119 pf="0000:31:00.0" vf="0000:31:0f.1" vf_index=119
+time="2025-07-28T20:12:41Z" level=debug msg="discovered VF" interface=ens60f0v12 pf="0000:31:00.0" vf="0000:31:01.6" vf_index=12
+time="2025-07-28T20:12:42Z" level=debug msg="discovered VF" interface=ens60f0v120 pf="0000:31:00.0" vf="0000:31:0f.2" vf_index=120
+time="2025-07-28T20:12:42Z" level=debug msg="discovered VF" interface=ens60f0v121 pf="0000:31:00.0" vf="0000:31:0f.3" vf_index=121
+time="2025-07-28T20:12:43Z" level=debug msg="discovered VF" interface=ens60f0v122 pf="0000:31:00.0" vf="0000:31:0f.4" vf_index=122
+time="2025-07-28T20:12:43Z" level=debug msg="discovered VF" interface=ens60f0v123 pf="0000:31:00.0" vf="0000:31:0f.5" vf_index=123
+time="2025-07-28T20:12:43Z" level=debug msg="discovered VF" interface=ens60f0v124 pf="0000:31:00.0" vf="0000:31:0f.6" vf_index=124
+time="2025-07-28T20:12:44Z" level=debug msg="discovered VF" interface=ens60f0v125 pf="0000:31:00.0" vf="0000:31:0f.7" vf_index=125
+time="2025-07-28T20:12:44Z" level=debug msg="discovered VF" interface=ens60f0v126 pf="0000:31:00.0" vf="0000:31:10.0" vf_index=126
+time="2025-07-28T20:12:45Z" level=debug msg="discovered VF" interface=ens60f0v13 pf="0000:31:00.0" vf="0000:31:01.7" vf_index=13
+time="2025-07-28T20:12:45Z" level=debug msg="discovered VF" interface=ens60f0v14 pf="0000:31:00.0" vf="0000:31:02.0" vf_index=14
+time="2025-07-28T20:12:46Z" level=debug msg="discovered VF" interface=ens60f0v15 pf="0000:31:00.0" vf="0000:31:02.1" vf_index=15
+time="2025-07-28T20:12:46Z" level=debug msg="discovered VF" interface=ens60f0v16 pf="0000:31:00.0" vf="0000:31:02.2" vf_index=16
+time="2025-07-28T20:12:47Z" level=debug msg="discovered VF" interface=ens60f0v17 pf="0000:31:00.0" vf="0000:31:02.3" vf_index=17
+time="2025-07-28T20:12:47Z" level=debug msg="discovered VF" interface=ens60f0v18 pf="0000:31:00.0" vf="0000:31:02.4" vf_index=18
+time="2025-07-28T20:12:48Z" level=debug msg="discovered VF" interface=ens60f0v19 pf="0000:31:00.0" vf="0000:31:02.5" vf_index=19
+time="2025-07-28T20:12:48Z" level=debug msg="discovered VF" interface=ens60f0v2 pf="0000:31:00.0" vf="0000:31:00.4" vf_index=2
+time="2025-07-28T20:12:48Z" level=debug msg="discovered VF" interface=ens60f0v20 pf="0000:31:00.0" vf="0000:31:02.6" vf_index=20
+time="2025-07-28T20:12:49Z" level=debug msg="discovered VF" interface=ens60f0v21 pf="0000:31:00.0" vf="0000:31:02.7" vf_index=21
+time="2025-07-28T20:12:49Z" level=debug msg="discovered VF" interface=ens60f0v22 pf="0000:31:00.0" vf="0000:31:03.0" vf_index=22
+time="2025-07-28T20:12:50Z" level=debug msg="discovered VF" interface=ens60f0v23 pf="0000:31:00.0" vf="0000:31:03.1" vf_index=23
+time="2025-07-28T20:12:50Z" level=debug msg="discovered VF" interface=ens60f0v24 pf="0000:31:00.0" vf="0000:31:03.2" vf_index=24
+time="2025-07-28T20:12:51Z" level=debug msg="discovered VF" interface=ens60f0v25 pf="0000:31:00.0" vf="0000:31:03.3" vf_index=25
+time="2025-07-28T20:12:51Z" level=debug msg="discovered VF" interface=ens60f0v26 pf="0000:31:00.0" vf="0000:31:03.4" vf_index=26
+time="2025-07-28T20:12:51Z" level=debug msg="discovered VF" interface=ens60f0v27 pf="0000:31:00.0" vf="0000:31:03.5" vf_index=27
+time="2025-07-28T20:12:52Z" level=debug msg="discovered VF" interface=ens60f0v28 pf="0000:31:00.0" vf="0000:31:03.6" vf_index=28
+time="2025-07-28T20:12:52Z" level=debug msg="discovered VF" interface=ens60f0v29 pf="0000:31:00.0" vf="0000:31:03.7" vf_index=29
+time="2025-07-28T20:12:53Z" level=debug msg="discovered VF" interface=ens60f0v3 pf="0000:31:00.0" vf="0000:31:00.5" vf_index=3
+time="2025-07-28T20:12:53Z" level=debug msg="discovered VF" interface=ens60f0v30 pf="0000:31:00.0" vf="0000:31:04.0" vf_index=30
+time="2025-07-28T20:12:54Z" level=debug msg="discovered VF" interface=ens60f0v31 pf="0000:31:00.0" vf="0000:31:04.1" vf_index=31
+time="2025-07-28T20:12:54Z" level=debug msg="discovered VF" interface=ens60f0v32 pf="0000:31:00.0" vf="0000:31:04.2" vf_index=32
+time="2025-07-28T20:12:54Z" level=debug msg="discovered VF" interface=ens60f0v33 pf="0000:31:00.0" vf="0000:31:04.3" vf_index=33
+time="2025-07-28T20:12:55Z" level=debug msg="discovered VF" interface=ens60f0v34 pf="0000:31:00.0" vf="0000:31:04.4" vf_index=34
+time="2025-07-28T20:12:55Z" level=debug msg="discovered VF" interface=ens60f0v35 pf="0000:31:00.0" vf="0000:31:04.5" vf_index=35
+time="2025-07-28T20:12:55Z" level=debug msg="discovered VF" interface=ens60f0v36 pf="0000:31:00.0" vf="0000:31:04.6" vf_index=36
+time="2025-07-28T20:12:56Z" level=debug msg="discovered VF" interface=ens60f0v37 pf="0000:31:00.0" vf="0000:31:04.7" vf_index=37
+time="2025-07-28T20:12:56Z" level=debug msg="discovered VF" interface=ens60f0v38 pf="0000:31:00.0" vf="0000:31:05.0" vf_index=38
+time="2025-07-28T20:12:57Z" level=debug msg="discovered VF" interface=ens60f0v39 pf="0000:31:00.0" vf="0000:31:05.1" vf_index=39
+time="2025-07-28T20:12:57Z" level=debug msg="discovered VF" interface=ens60f0v4 pf="0000:31:00.0" vf="0000:31:00.6" vf_index=4
+time="2025-07-28T20:12:58Z" level=debug msg="discovered VF" interface=ens60f0v40 pf="0000:31:00.0" vf="0000:31:05.2" vf_index=40
+time="2025-07-28T20:12:58Z" level=debug msg="discovered VF" interface=ens60f0v41 pf="0000:31:00.0" vf="0000:31:05.3" vf_index=41
+time="2025-07-28T20:12:59Z" level=debug msg="discovered VF" interface=ens60f0v42 pf="0000:31:00.0" vf="0000:31:05.4" vf_index=42
+time="2025-07-28T20:12:59Z" level=debug msg="discovered VF" interface=ens60f0v43 pf="0000:31:00.0" vf="0000:31:05.5" vf_index=43
+time="2025-07-28T20:13:00Z" level=debug msg="discovered VF" interface=ens60f0v44 pf="0000:31:00.0" vf="0000:31:05.6" vf_index=44
+time="2025-07-28T20:13:00Z" level=debug msg="discovered VF" interface=ens60f0v45 pf="0000:31:00.0" vf="0000:31:05.7" vf_index=45
+time="2025-07-28T20:13:01Z" level=debug msg="discovered VF" interface=ens60f0v46 pf="0000:31:00.0" vf="0000:31:06.0" vf_index=46
+time="2025-07-28T20:13:01Z" level=debug msg="discovered VF" interface=ens60f0v47 pf="0000:31:00.0" vf="0000:31:06.1" vf_index=47
+time="2025-07-28T20:13:01Z" level=debug msg="discovered VF" interface=ens60f0v48 pf="0000:31:00.0" vf="0000:31:06.2" vf_index=48
+time="2025-07-28T20:13:02Z" level=debug msg="discovered VF" interface=ens60f0v49 pf="0000:31:00.0" vf="0000:31:06.3" vf_index=49
+time="2025-07-28T20:13:02Z" level=debug msg="discovered VF" interface=ens60f0v5 pf="0000:31:00.0" vf="0000:31:00.7" vf_index=5
+time="2025-07-28T20:13:03Z" level=debug msg="discovered VF" interface=ens60f0v50 pf="0000:31:00.0" vf="0000:31:06.4" vf_index=50
+time="2025-07-28T20:13:03Z" level=debug msg="discovered VF" interface=ens60f0v51 pf="0000:31:00.0" vf="0000:31:06.5" vf_index=51
+time="2025-07-28T20:13:04Z" level=debug msg="discovered VF" interface=ens60f0v52 pf="0000:31:00.0" vf="0000:31:06.6" vf_index=52
+time="2025-07-28T20:13:04Z" level=debug msg="discovered VF" interface=ens60f0v53 pf="0000:31:00.0" vf="0000:31:06.7" vf_index=53
+time="2025-07-28T20:13:05Z" level=debug msg="discovered VF" interface=ens60f0v54 pf="0000:31:00.0" vf="0000:31:07.0" vf_index=54
+time="2025-07-28T20:13:05Z" level=debug msg="discovered VF" interface=ens60f0v55 pf="0000:31:00.0" vf="0000:31:07.1" vf_index=55
+time="2025-07-28T20:13:06Z" level=debug msg="discovered VF" interface=ens60f0v56 pf="0000:31:00.0" vf="0000:31:07.2" vf_index=56
+time="2025-07-28T20:13:06Z" level=debug msg="discovered VF" interface=ens60f0v57 pf="0000:31:00.0" vf="0000:31:07.3" vf_index=57
+time="2025-07-28T20:13:07Z" level=debug msg="discovered VF" interface=ens60f0v58 pf="0000:31:00.0" vf="0000:31:07.4" vf_index=58
+time="2025-07-28T20:13:07Z" level=debug msg="discovered VF" interface=ens60f0v59 pf="0000:31:00.0" vf="0000:31:07.5" vf_index=59
+time="2025-07-28T20:13:08Z" level=debug msg="discovered VF" interface=ens60f0v6 pf="0000:31:00.0" vf="0000:31:01.0" vf_index=6
+time="2025-07-28T20:13:08Z" level=debug msg="discovered VF" interface=ens60f0v60 pf="0000:31:00.0" vf="0000:31:07.6" vf_index=60
+time="2025-07-28T20:13:08Z" level=debug msg="discovered VF" interface=ens60f0v61 pf="0000:31:00.0" vf="0000:31:07.7" vf_index=61
+time="2025-07-28T20:13:09Z" level=debug msg="discovered VF" interface=ens60f0v62 pf="0000:31:00.0" vf="0000:31:08.0" vf_index=62
+time="2025-07-28T20:13:09Z" level=debug msg="discovered VF" interface=ens60f0v63 pf="0000:31:00.0" vf="0000:31:08.1" vf_index=63
+time="2025-07-28T20:13:10Z" level=debug msg="discovered VF" interface=ens60f0v64 pf="0000:31:00.0" vf="0000:31:08.2" vf_index=64
+time="2025-07-28T20:13:10Z" level=debug msg="discovered VF" interface=ens60f0v65 pf="0000:31:00.0" vf="0000:31:08.3" vf_index=65
+time="2025-07-28T20:13:11Z" level=debug msg="discovered VF" interface=ens60f0v66 pf="0000:31:00.0" vf="0000:31:08.4" vf_index=66
+time="2025-07-28T20:13:11Z" level=debug msg="discovered VF" interface=ens60f0v67 pf="0000:31:00.0" vf="0000:31:08.5" vf_index=67
+time="2025-07-28T20:13:11Z" level=debug msg="discovered VF" interface=ens60f0v68 pf="0000:31:00.0" vf="0000:31:08.6" vf_index=68
+time="2025-07-28T20:13:12Z" level=debug msg="discovered VF" interface=ens60f0v69 pf="0000:31:00.0" vf="0000:31:08.7" vf_index=69
+time="2025-07-28T20:13:12Z" level=debug msg="discovered VF" interface=ens60f0v7 pf="0000:31:00.0" vf="0000:31:01.1" vf_index=7
+time="2025-07-28T20:13:13Z" level=debug msg="discovered VF" interface=ens60f0v70 pf="0000:31:00.0" vf="0000:31:09.0" vf_index=70
+time="2025-07-28T20:13:13Z" level=debug msg="discovered VF" interface=ens60f0v71 pf="0000:31:00.0" vf="0000:31:09.1" vf_index=71
+time="2025-07-28T20:13:14Z" level=debug msg="discovered VF" interface=ens60f0v72 pf="0000:31:00.0" vf="0000:31:09.2" vf_index=72
+time="2025-07-28T20:13:14Z" level=debug msg="discovered VF" interface=ens60f0v73 pf="0000:31:00.0" vf="0000:31:09.3" vf_index=73
+time="2025-07-28T20:13:15Z" level=debug msg="discovered VF" interface=ens60f0v74 pf="0000:31:00.0" vf="0000:31:09.4" vf_index=74
+time="2025-07-28T20:13:15Z" level=debug msg="discovered VF" interface=ens60f0v75 pf="0000:31:00.0" vf="0000:31:09.5" vf_index=75
+time="2025-07-28T20:13:15Z" level=debug msg="discovered VF" interface=ens60f0v76 pf="0000:31:00.0" vf="0000:31:09.6" vf_index=76
+time="2025-07-28T20:13:16Z" level=debug msg="discovered VF" interface=ens60f0v77 pf="0000:31:00.0" vf="0000:31:09.7" vf_index=77
+time="2025-07-28T20:13:16Z" level=debug msg="discovered VF" interface=ens60f0v78 pf="0000:31:00.0" vf="0000:31:0a.0" vf_index=78
+time="2025-07-28T20:13:17Z" level=debug msg="discovered VF" interface=ens60f0v79 pf="0000:31:00.0" vf="0000:31:0a.1" vf_index=79
+time="2025-07-28T20:13:17Z" level=debug msg="discovered VF" interface=ens60f0v8 pf="0000:31:00.0" vf="0000:31:01.2" vf_index=8
+time="2025-07-28T20:13:17Z" level=debug msg="discovered VF" interface=ens60f0v80 pf="0000:31:00.0" vf="0000:31:0a.2" vf_index=80
+time="2025-07-28T20:13:18Z" level=debug msg="discovered VF" interface=ens60f0v81 pf="0000:31:00.0" vf="0000:31:0a.3" vf_index=81
+time="2025-07-28T20:13:18Z" level=debug msg="discovered VF" interface=ens60f0v82 pf="0000:31:00.0" vf="0000:31:0a.4" vf_index=82
+time="2025-07-28T20:13:19Z" level=debug msg="discovered VF" interface=ens60f0v83 pf="0000:31:00.0" vf="0000:31:0a.5" vf_index=83
+time="2025-07-28T20:13:19Z" level=debug msg="discovered VF" interface=ens60f0v84 pf="0000:31:00.0" vf="0000:31:0a.6" vf_index=84
+time="2025-07-28T20:13:19Z" level=debug msg="discovered VF" interface=ens60f0v85 pf="0000:31:00.0" vf="0000:31:0a.7" vf_index=85
+time="2025-07-28T20:13:20Z" level=debug msg="discovered VF" interface=ens60f0v86 pf="0000:31:00.0" vf="0000:31:0b.0" vf_index=86
+time="2025-07-28T20:13:20Z" level=debug msg="discovered VF" interface=ens60f0v87 pf="0000:31:00.0" vf="0000:31:0b.1" vf_index=87
+time="2025-07-28T20:13:21Z" level=debug msg="discovered VF" interface=ens60f0v88 pf="0000:31:00.0" vf="0000:31:0b.2" vf_index=88
+time="2025-07-28T20:13:21Z" level=debug msg="discovered VF" interface=ens60f0v89 pf="0000:31:00.0" vf="0000:31:0b.3" vf_index=89
+time="2025-07-28T20:13:21Z" level=debug msg="discovered VF" interface=ens60f0v9 pf="0000:31:00.0" vf="0000:31:01.3" vf_index=9
+time="2025-07-28T20:13:22Z" level=debug msg="discovered VF" interface=ens60f0v90 pf="0000:31:00.0" vf="0000:31:0b.4" vf_index=90
+time="2025-07-28T20:13:22Z" level=debug msg="discovered VF" interface=ens60f0v91 pf="0000:31:00.0" vf="0000:31:0b.5" vf_index=91
+time="2025-07-28T20:13:23Z" level=debug msg="discovered VF" interface=ens60f0v92 pf="0000:31:00.0" vf="0000:31:0b.6" vf_index=92
+time="2025-07-28T20:13:23Z" level=debug msg="discovered VF" interface=ens60f0v93 pf="0000:31:00.0" vf="0000:31:0b.7" vf_index=93
+time="2025-07-28T20:13:23Z" level=debug msg="discovered VF" interface=ens60f0v94 pf="0000:31:00.0" vf="0000:31:0c.0" vf_index=94
+time="2025-07-28T20:13:24Z" level=debug msg="discovered VF" interface=ens60f0v95 pf="0000:31:00.0" vf="0000:31:0c.1" vf_index=95
+time="2025-07-28T20:13:24Z" level=debug msg="discovered VF" interface=ens60f0v96 pf="0000:31:00.0" vf="0000:31:0c.2" vf_index=96
+time="2025-07-28T20:13:25Z" level=debug msg="discovered VF" interface=ens60f0v97 pf="0000:31:00.0" vf="0000:31:0c.3" vf_index=97
+time="2025-07-28T20:13:25Z" level=debug msg="discovered VF" interface=ens60f0v98 pf="0000:31:00.0" vf="0000:31:0c.4" vf_index=98
+time="2025-07-28T20:13:26Z" level=debug msg="discovered VF" interface=ens60f0v99 pf="0000:31:00.0" vf="0000:31:0c.5" vf_index=99
+time="2025-07-28T20:13:26Z" level=info msg="VF discovery completed for PF" pf="0000:31:00.0" vf_count=127
+time="2025-07-28T20:13:26Z" level=debug msg="found SR-IOV capable device" pci="0000:31:00.1"
+time="2025-07-28T20:13:26Z" level=info msg="discovered SR-IOV PF" enabled_vfs=127 interface=ens60f1np1 pf="0000:31:00.1" total_vfs=127
+time="2025-07-28T20:13:26Z" level=info msg="discovering VFs" pf="0000:31:00.1"
+time="2025-07-28T20:13:26Z" level=debug msg="discovered VF" interface=ens60f1v0 pf="0000:31:00.1" vf="0000:31:10.1" vf_index=0
+time="2025-07-28T20:13:27Z" level=debug msg="discovered VF" interface=ens60f1v1 pf="0000:31:00.1" vf="0000:31:10.2" vf_index=1
+time="2025-07-28T20:13:27Z" level=debug msg="discovered VF" interface=ens60f1v10 pf="0000:31:00.1" vf="0000:31:11.3" vf_index=10
+time="2025-07-28T20:13:28Z" level=debug msg="discovered VF" interface=ens60f1v100 pf="0000:31:00.1" vf="0000:31:1c.5" vf_index=100
+time="2025-07-28T20:13:28Z" level=debug msg="discovered VF" interface=ens60f1v101 pf="0000:31:00.1" vf="0000:31:1c.6" vf_index=101
+time="2025-07-28T20:13:29Z" level=debug msg="discovered VF" interface=ens60f1v102 pf="0000:31:00.1" vf="0000:31:1c.7" vf_index=102
+time="2025-07-28T20:13:29Z" level=debug msg="discovered VF" interface=ens60f1v103 pf="0000:31:00.1" vf="0000:31:1d.0" vf_index=103
+time="2025-07-28T20:13:29Z" level=debug msg="discovered VF" interface=ens60f1v104 pf="0000:31:00.1" vf="0000:31:1d.1" vf_index=104
+time="2025-07-28T20:13:30Z" level=debug msg="discovered VF" interface=ens60f1v105 pf="0000:31:00.1" vf="0000:31:1d.2" vf_index=105
+time="2025-07-28T20:13:30Z" level=debug msg="discovered VF" interface=ens60f1v106 pf="0000:31:00.1" vf="0000:31:1d.3" vf_index=106
+time="2025-07-28T20:13:31Z" level=debug msg="discovered VF" interface=ens60f1v107 pf="0000:31:00.1" vf="0000:31:1d.4" vf_index=107
+time="2025-07-28T20:13:31Z" level=debug msg="discovered VF" interface=ens60f1v108 pf="0000:31:00.1" vf="0000:31:1d.5" vf_index=108
+time="2025-07-28T20:13:32Z" level=debug msg="discovered VF" interface=ens60f1v109 pf="0000:31:00.1" vf="0000:31:1d.6" vf_index=109
+time="2025-07-28T20:13:32Z" level=debug msg="discovered VF" interface=ens60f1v11 pf="0000:31:00.1" vf="0000:31:11.4" vf_index=11
+time="2025-07-28T20:13:33Z" level=debug msg="discovered VF" interface=ens60f1v110 pf="0000:31:00.1" vf="0000:31:1d.7" vf_index=110
+time="2025-07-28T20:13:33Z" level=debug msg="discovered VF" interface=ens60f1v111 pf="0000:31:00.1" vf="0000:31:1e.0" vf_index=111
+time="2025-07-28T20:13:33Z" level=debug msg="discovered VF" interface=ens60f1v112 pf="0000:31:00.1" vf="0000:31:1e.1" vf_index=112
+time="2025-07-28T20:13:34Z" level=debug msg="discovered VF" interface=ens60f1v113 pf="0000:31:00.1" vf="0000:31:1e.2" vf_index=113
+time="2025-07-28T20:13:34Z" level=debug msg="discovered VF" interface=ens60f1v114 pf="0000:31:00.1" vf="0000:31:1e.3" vf_index=114
+time="2025-07-28T20:13:35Z" level=debug msg="discovered VF" interface=ens60f1v115 pf="0000:31:00.1" vf="0000:31:1e.4" vf_index=115
+time="2025-07-28T20:13:35Z" level=debug msg="discovered VF" interface=ens60f1v116 pf="0000:31:00.1" vf="0000:31:1e.5" vf_index=116
+time="2025-07-28T20:13:36Z" level=debug msg="discovered VF" interface=ens60f1v117 pf="0000:31:00.1" vf="0000:31:1e.6" vf_index=117
+time="2025-07-28T20:13:36Z" level=debug msg="discovered VF" interface=ens60f1v118 pf="0000:31:00.1" vf="0000:31:1e.7" vf_index=118
+time="2025-07-28T20:13:37Z" level=debug msg="discovered VF" interface=ens60f1v119 pf="0000:31:00.1" vf="0000:31:1f.0" vf_index=119
+time="2025-07-28T20:13:37Z" level=debug msg="discovered VF" interface=ens60f1v12 pf="0000:31:00.1" vf="0000:31:11.5" vf_index=12
+time="2025-07-28T20:13:37Z" level=debug msg="discovered VF" interface=ens60f1v120 pf="0000:31:00.1" vf="0000:31:1f.1" vf_index=120
+time="2025-07-28T20:13:38Z" level=debug msg="discovered VF" interface=ens60f1v121 pf="0000:31:00.1" vf="0000:31:1f.2" vf_index=121
+time="2025-07-28T20:13:38Z" level=debug msg="discovered VF" interface=ens60f1v122 pf="0000:31:00.1" vf="0000:31:1f.3" vf_index=122
+time="2025-07-28T20:13:39Z" level=debug msg="discovered VF" interface=ens60f1v123 pf="0000:31:00.1" vf="0000:31:1f.4" vf_index=123
+time="2025-07-28T20:13:39Z" level=debug msg="discovered VF" interface=ens60f1v124 pf="0000:31:00.1" vf="0000:31:1f.5" vf_index=124
+time="2025-07-28T20:13:40Z" level=debug msg="discovered VF" interface=ens60f1v125 pf="0000:31:00.1" vf="0000:31:1f.6" vf_index=125
+time="2025-07-28T20:13:40Z" level=debug msg="discovered VF" interface=ens60f1v126 pf="0000:31:00.1" vf="0000:31:1f.7" vf_index=126
+time="2025-07-28T20:13:41Z" level=debug msg="discovered VF" interface=ens60f1v13 pf="0000:31:00.1" vf="0000:31:11.6" vf_index=13
+time="2025-07-28T20:13:41Z" level=debug msg="discovered VF" interface=ens60f1v14 pf="0000:31:00.1" vf="0000:31:11.7" vf_index=14
+time="2025-07-28T20:13:41Z" level=debug msg="discovered VF" interface=ens60f1v15 pf="0000:31:00.1" vf="0000:31:12.0" vf_index=15
+time="2025-07-28T20:13:42Z" level=debug msg="discovered VF" interface=ens60f1v16 pf="0000:31:00.1" vf="0000:31:12.1" vf_index=16
+time="2025-07-28T20:13:42Z" level=debug msg="discovered VF" interface=ens60f1v17 pf="0000:31:00.1" vf="0000:31:12.2" vf_index=17
+time="2025-07-28T20:13:43Z" level=debug msg="discovered VF" interface=ens60f1v18 pf="0000:31:00.1" vf="0000:31:12.3" vf_index=18
+time="2025-07-28T20:13:43Z" level=debug msg="discovered VF" interface=ens60f1v19 pf="0000:31:00.1" vf="0000:31:12.4" vf_index=19
+time="2025-07-28T20:13:44Z" level=debug msg="discovered VF" interface=ens60f1v2 pf="0000:31:00.1" vf="0000:31:10.3" vf_index=2
+time="2025-07-28T20:13:44Z" level=debug msg="discovered VF" interface=ens60f1v20 pf="0000:31:00.1" vf="0000:31:12.5" vf_index=20
+time="2025-07-28T20:13:45Z" level=debug msg="discovered VF" interface=ens60f1v21 pf="0000:31:00.1" vf="0000:31:12.6" vf_index=21
+time="2025-07-28T20:13:45Z" level=debug msg="discovered VF" interface=ens60f1v22 pf="0000:31:00.1" vf="0000:31:12.7" vf_index=22
+time="2025-07-28T20:13:45Z" level=debug msg="discovered VF" interface=ens60f1v23 pf="0000:31:00.1" vf="0000:31:13.0" vf_index=23
+time="2025-07-28T20:13:46Z" level=debug msg="discovered VF" interface=ens60f1v24 pf="0000:31:00.1" vf="0000:31:13.1" vf_index=24
+time="2025-07-28T20:13:46Z" level=debug msg="discovered VF" interface=ens60f1v25 pf="0000:31:00.1" vf="0000:31:13.2" vf_index=25
+time="2025-07-28T20:13:47Z" level=debug msg="discovered VF" interface=ens60f1v26 pf="0000:31:00.1" vf="0000:31:13.3" vf_index=26
+time="2025-07-28T20:13:47Z" level=debug msg="discovered VF" interface=ens60f1v27 pf="0000:31:00.1" vf="0000:31:13.4" vf_index=27
+time="2025-07-28T20:13:47Z" level=debug msg="discovered VF" interface=ens60f1v28 pf="0000:31:00.1" vf="0000:31:13.5" vf_index=28
+time="2025-07-28T20:13:48Z" level=debug msg="discovered VF" interface=ens60f1v29 pf="0000:31:00.1" vf="0000:31:13.6" vf_index=29
+time="2025-07-28T20:13:48Z" level=debug msg="discovered VF" interface=ens60f1v3 pf="0000:31:00.1" vf="0000:31:10.4" vf_index=3
+time="2025-07-28T20:13:49Z" level=debug msg="discovered VF" interface=ens60f1v30 pf="0000:31:00.1" vf="0000:31:13.7" vf_index=30
+time="2025-07-28T20:13:49Z" level=debug msg="discovered VF" interface=ens60f1v31 pf="0000:31:00.1" vf="0000:31:14.0" vf_index=31
+time="2025-07-28T20:13:49Z" level=debug msg="discovered VF" interface=ens60f1v32 pf="0000:31:00.1" vf="0000:31:14.1" vf_index=32
+time="2025-07-28T20:13:50Z" level=debug msg="discovered VF" interface=ens60f1v33 pf="0000:31:00.1" vf="0000:31:14.2" vf_index=33
+time="2025-07-28T20:13:50Z" level=debug msg="discovered VF" interface=ens60f1v34 pf="0000:31:00.1" vf="0000:31:14.3" vf_index=34
+time="2025-07-28T20:13:51Z" level=debug msg="discovered VF" interface=ens60f1v35 pf="0000:31:00.1" vf="0000:31:14.4" vf_index=35
+time="2025-07-28T20:13:51Z" level=debug msg="discovered VF" interface=ens60f1v36 pf="0000:31:00.1" vf="0000:31:14.5" vf_index=36
+time="2025-07-28T20:13:52Z" level=debug msg="discovered VF" interface=ens60f1v37 pf="0000:31:00.1" vf="0000:31:14.6" vf_index=37
+time="2025-07-28T20:13:52Z" level=debug msg="discovered VF" interface=ens60f1v38 pf="0000:31:00.1" vf="0000:31:14.7" vf_index=38
+time="2025-07-28T20:13:52Z" level=debug msg="discovered VF" interface=ens60f1v39 pf="0000:31:00.1" vf="0000:31:15.0" vf_index=39
+time="2025-07-28T20:13:53Z" level=debug msg="discovered VF" interface=ens60f1v4 pf="0000:31:00.1" vf="0000:31:10.5" vf_index=4
+time="2025-07-28T20:13:53Z" level=debug msg="discovered VF" interface=ens60f1v40 pf="0000:31:00.1" vf="0000:31:15.1" vf_index=40
+time="2025-07-28T20:13:54Z" level=debug msg="discovered VF" interface=ens60f1v41 pf="0000:31:00.1" vf="0000:31:15.2" vf_index=41
+time="2025-07-28T20:13:54Z" level=debug msg="discovered VF" interface=ens60f1v42 pf="0000:31:00.1" vf="0000:31:15.3" vf_index=42
+time="2025-07-28T20:13:54Z" level=debug msg="discovered VF" interface=ens60f1v43 pf="0000:31:00.1" vf="0000:31:15.4" vf_index=43
+time="2025-07-28T20:13:55Z" level=debug msg="discovered VF" interface=ens60f1v44 pf="0000:31:00.1" vf="0000:31:15.5" vf_index=44
+time="2025-07-28T20:13:55Z" level=debug msg="discovered VF" interface=ens60f1v45 pf="0000:31:00.1" vf="0000:31:15.6" vf_index=45
+time="2025-07-28T20:13:56Z" level=debug msg="discovered VF" interface=ens60f1v46 pf="0000:31:00.1" vf="0000:31:15.7" vf_index=46
+time="2025-07-28T20:13:56Z" level=debug msg="discovered VF" interface=ens60f1v47 pf="0000:31:00.1" vf="0000:31:16.0" vf_index=47
+time="2025-07-28T20:13:56Z" level=debug msg="discovered VF" interface=ens60f1v48 pf="0000:31:00.1" vf="0000:31:16.1" vf_index=48
+time="2025-07-28T20:13:57Z" level=debug msg="discovered VF" interface=ens60f1v49 pf="0000:31:00.1" vf="0000:31:16.2" vf_index=49
+time="2025-07-28T20:13:57Z" level=debug msg="discovered VF" interface=ens60f1v5 pf="0000:31:00.1" vf="0000:31:10.6" vf_index=5
+time="2025-07-28T20:13:57Z" level=debug msg="discovered VF" interface=ens60f1v50 pf="0000:31:00.1" vf="0000:31:16.3" vf_index=50
+time="2025-07-28T20:13:58Z" level=debug msg="discovered VF" interface=ens60f1v51 pf="0000:31:00.1" vf="0000:31:16.4" vf_index=51
+time="2025-07-28T20:13:58Z" level=debug msg="discovered VF" interface=ens60f1v52 pf="0000:31:00.1" vf="0000:31:16.5" vf_index=52
+time="2025-07-28T20:13:59Z" level=debug msg="discovered VF" interface=ens60f1v53 pf="0000:31:00.1" vf="0000:31:16.6" vf_index=53
+time="2025-07-28T20:13:59Z" level=debug msg="discovered VF" interface=ens60f1v54 pf="0000:31:00.1" vf="0000:31:16.7" vf_index=54
+time="2025-07-28T20:14:00Z" level=debug msg="discovered VF" interface=ens60f1v55 pf="0000:31:00.1" vf="0000:31:17.0" vf_index=55
+time="2025-07-28T20:14:00Z" level=debug msg="discovered VF" interface=ens60f1v56 pf="0000:31:00.1" vf="0000:31:17.1" vf_index=56
+time="2025-07-28T20:14:00Z" level=debug msg="discovered VF" interface=ens60f1v57 pf="0000:31:00.1" vf="0000:31:17.2" vf_index=57
+time="2025-07-28T20:14:01Z" level=debug msg="discovered VF" interface=ens60f1v58 pf="0000:31:00.1" vf="0000:31:17.3" vf_index=58
+time="2025-07-28T20:14:01Z" level=debug msg="discovered VF" interface=ens60f1v59 pf="0000:31:00.1" vf="0000:31:17.4" vf_index=59
+time="2025-07-28T20:14:02Z" level=debug msg="discovered VF" interface=ens60f1v6 pf="0000:31:00.1" vf="0000:31:10.7" vf_index=6
+time="2025-07-28T20:14:02Z" level=debug msg="discovered VF" interface=ens60f1v60 pf="0000:31:00.1" vf="0000:31:17.5" vf_index=60
+time="2025-07-28T20:14:02Z" level=debug msg="discovered VF" interface=ens60f1v61 pf="0000:31:00.1" vf="0000:31:17.6" vf_index=61
+time="2025-07-28T20:14:03Z" level=debug msg="discovered VF" interface=ens60f1v62 pf="0000:31:00.1" vf="0000:31:17.7" vf_index=62
+time="2025-07-28T20:14:03Z" level=debug msg="discovered VF" interface=ens60f1v63 pf="0000:31:00.1" vf="0000:31:18.0" vf_index=63
+time="2025-07-28T20:14:04Z" level=debug msg="discovered VF" interface=ens60f1v64 pf="0000:31:00.1" vf="0000:31:18.1" vf_index=64
+time="2025-07-28T20:14:04Z" level=debug msg="discovered VF" interface=ens60f1v65 pf="0000:31:00.1" vf="0000:31:18.2" vf_index=65
+time="2025-07-28T20:14:05Z" level=debug msg="discovered VF" interface=ens60f1v66 pf="0000:31:00.1" vf="0000:31:18.3" vf_index=66
+time="2025-07-28T20:14:05Z" level=debug msg="discovered VF" interface=ens60f1v67 pf="0000:31:00.1" vf="0000:31:18.4" vf_index=67
+time="2025-07-28T20:14:05Z" level=debug msg="discovered VF" interface=ens60f1v68 pf="0000:31:00.1" vf="0000:31:18.5" vf_index=68
+time="2025-07-28T20:14:06Z" level=debug msg="discovered VF" interface=ens60f1v69 pf="0000:31:00.1" vf="0000:31:18.6" vf_index=69
+time="2025-07-28T20:14:06Z" level=debug msg="discovered VF" interface=ens60f1v7 pf="0000:31:00.1" vf="0000:31:11.0" vf_index=7
+time="2025-07-28T20:14:07Z" level=debug msg="discovered VF" interface=ens60f1v70 pf="0000:31:00.1" vf="0000:31:18.7" vf_index=70
+time="2025-07-28T20:14:07Z" level=debug msg="discovered VF" interface=ens60f1v71 pf="0000:31:00.1" vf="0000:31:19.0" vf_index=71
+time="2025-07-28T20:14:07Z" level=debug msg="discovered VF" interface=ens60f1v72 pf="0000:31:00.1" vf="0000:31:19.1" vf_index=72
+time="2025-07-28T20:14:08Z" level=debug msg="discovered VF" interface=ens60f1v73 pf="0000:31:00.1" vf="0000:31:19.2" vf_index=73
+time="2025-07-28T20:14:08Z" level=debug msg="discovered VF" interface=ens60f1v74 pf="0000:31:00.1" vf="0000:31:19.3" vf_index=74
+time="2025-07-28T20:14:09Z" level=debug msg="discovered VF" interface=ens60f1v75 pf="0000:31:00.1" vf="0000:31:19.4" vf_index=75
+time="2025-07-28T20:14:09Z" level=debug msg="discovered VF" interface=ens60f1v76 pf="0000:31:00.1" vf="0000:31:19.5" vf_index=76
+time="2025-07-28T20:14:10Z" level=debug msg="discovered VF" interface=ens60f1v77 pf="0000:31:00.1" vf="0000:31:19.6" vf_index=77
+time="2025-07-28T20:14:10Z" level=debug msg="discovered VF" interface=ens60f1v78 pf="0000:31:00.1" vf="0000:31:19.7" vf_index=78
+time="2025-07-28T20:14:10Z" level=debug msg="discovered VF" interface=ens60f1v79 pf="0000:31:00.1" vf="0000:31:1a.0" vf_index=79
+time="2025-07-28T20:14:11Z" level=debug msg="discovered VF" interface=ens60f1v8 pf="0000:31:00.1" vf="0000:31:11.1" vf_index=8
+time="2025-07-28T20:14:11Z" level=debug msg="discovered VF" interface=ens60f1v80 pf="0000:31:00.1" vf="0000:31:1a.1" vf_index=80
+time="2025-07-28T20:14:12Z" level=debug msg="discovered VF" interface=ens60f1v81 pf="0000:31:00.1" vf="0000:31:1a.2" vf_index=81
+time="2025-07-28T20:14:12Z" level=debug msg="discovered VF" interface=ens60f1v82 pf="0000:31:00.1" vf="0000:31:1a.3" vf_index=82
+time="2025-07-28T20:14:12Z" level=debug msg="discovered VF" interface=ens60f1v83 pf="0000:31:00.1" vf="0000:31:1a.4" vf_index=83
+time="2025-07-28T20:14:13Z" level=debug msg="discovered VF" interface=ens60f1v84 pf="0000:31:00.1" vf="0000:31:1a.5" vf_index=84
+time="2025-07-28T20:14:13Z" level=debug msg="discovered VF" interface=ens60f1v85 pf="0000:31:00.1" vf="0000:31:1a.6" vf_index=85
+time="2025-07-28T20:14:14Z" level=debug msg="discovered VF" interface=ens60f1v86 pf="0000:31:00.1" vf="0000:31:1a.7" vf_index=86
+time="2025-07-28T20:14:14Z" level=debug msg="discovered VF" interface=ens60f1v87 pf="0000:31:00.1" vf="0000:31:1b.0" vf_index=87
+time="2025-07-28T20:14:14Z" level=debug msg="discovered VF" interface=ens60f1v88 pf="0000:31:00.1" vf="0000:31:1b.1" vf_index=88
+time="2025-07-28T20:14:15Z" level=debug msg="discovered VF" interface=ens60f1v89 pf="0000:31:00.1" vf="0000:31:1b.2" vf_index=89
+time="2025-07-28T20:14:15Z" level=debug msg="discovered VF" interface=ens60f1v9 pf="0000:31:00.1" vf="0000:31:11.2" vf_index=9
+time="2025-07-28T20:14:16Z" level=debug msg="discovered VF" interface=ens60f1v90 pf="0000:31:00.1" vf="0000:31:1b.3" vf_index=90
+time="2025-07-28T20:14:16Z" level=debug msg="discovered VF" interface=ens60f1v91 pf="0000:31:00.1" vf="0000:31:1b.4" vf_index=91
+time="2025-07-28T20:14:17Z" level=debug msg="discovered VF" interface=ens60f1v92 pf="0000:31:00.1" vf="0000:31:1b.5" vf_index=92
+time="2025-07-28T20:14:17Z" level=debug msg="discovered VF" interface=ens60f1v93 pf="0000:31:00.1" vf="0000:31:1b.6" vf_index=93
+time="2025-07-28T20:14:18Z" level=debug msg="discovered VF" interface=ens60f1v94 pf="0000:31:00.1" vf="0000:31:1b.7" vf_index=94
+time="2025-07-28T20:14:18Z" level=debug msg="discovered VF" interface=ens60f1v95 pf="0000:31:00.1" vf="0000:31:1c.0" vf_index=95
+time="2025-07-28T20:14:18Z" level=debug msg="discovered VF" interface=ens60f1v96 pf="0000:31:00.1" vf="0000:31:1c.1" vf_index=96
+time="2025-07-28T20:14:19Z" level=debug msg="discovered VF" interface=ens60f1v97 pf="0000:31:00.1" vf="0000:31:1c.2" vf_index=97
+time="2025-07-28T20:14:19Z" level=debug msg="discovered VF" interface=ens60f1v98 pf="0000:31:00.1" vf="0000:31:1c.3" vf_index=98
+time="2025-07-28T20:14:20Z" level=debug msg="discovered VF" interface=ens60f1v99 pf="0000:31:00.1" vf="0000:31:1c.4" vf_index=99
+time="2025-07-28T20:14:20Z" level=info msg="VF discovery completed for PF" pf="0000:31:00.1" vf_count=127
+time="2025-07-28T20:14:20Z" level=debug msg="found SR-IOV capable device" pci="0000:32:00.0"
+time="2025-07-28T20:14:20Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=ens61f0 pf="0000:32:00.0" total_vfs=7
+time="2025-07-28T20:14:20Z" level=debug msg="found SR-IOV capable device" pci="0000:32:00.1"
+time="2025-07-28T20:14:20Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=ens61f1 pf="0000:32:00.1" total_vfs=7
+time="2025-07-28T20:14:20Z" level=debug msg="found SR-IOV capable device" pci="0000:46:00.0"
+time="2025-07-28T20:14:21Z" level=info msg="discovered SR-IOV PF" enabled_vfs=1 interface=enp70s0np0 pf="0000:46:00.0" total_vfs=1
+time="2025-07-28T20:14:21Z" level=info msg="discovering VFs" pf="0000:46:00.0"
+time="2025-07-28T20:14:21Z" level=debug msg="discovered VF" interface=enp70s0v0 pf="0000:46:00.0" vf="0000:46:00.1" vf_index=0
+time="2025-07-28T20:14:21Z" level=info msg="VF discovery completed for PF" pf="0000:46:00.0" vf_count=1
+time="2025-07-28T20:14:21Z" level=debug msg="found SR-IOV capable device" pci="0000:49:00.0"
+time="2025-07-28T20:14:21Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface= pf="0000:49:00.0" total_vfs=1
+time="2025-07-28T20:14:21Z" level=debug msg="found SR-IOV capable device" pci="0000:65:00.0"
+time="2025-07-28T20:14:21Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface= pf="0000:65:00.0" total_vfs=1
+time="2025-07-28T20:14:21Z" level=debug msg="found SR-IOV capable device" pci="0000:69:00.0"
+time="2025-07-28T20:14:22Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=eno1np0 pf="0000:69:00.0" total_vfs=1
+time="2025-07-28T20:14:22Z" level=debug msg="found SR-IOV capable device" pci="0000:85:00.0"
+time="2025-07-28T20:14:22Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface= pf="0000:85:00.0" total_vfs=1
+time="2025-07-28T20:14:22Z" level=debug msg="found SR-IOV capable device" pci="0000:89:00.0"
+time="2025-07-28T20:14:22Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=enp137s0np0 pf="0000:89:00.0" total_vfs=1
+time="2025-07-28T20:14:22Z" level=debug msg="found SR-IOV capable device" pci="0000:a6:00.0"
+time="2025-07-28T20:14:23Z" level=info msg="discovered SR-IOV PF" enabled_vfs=1 interface=enp166s0np0 pf="0000:a6:00.0" total_vfs=1
+time="2025-07-28T20:14:23Z" level=info msg="discovering VFs" pf="0000:a6:00.0"
+time="2025-07-28T20:14:23Z" level=debug msg="discovered VF" interface=enp166s0v0 pf="0000:a6:00.0" vf="0000:a6:00.1" vf_index=0
+time="2025-07-28T20:14:23Z" level=info msg="VF discovery completed for PF" pf="0000:a6:00.0" vf_count=1
+time="2025-07-28T20:14:23Z" level=debug msg="found SR-IOV capable device" pci="0000:a9:00.0"
+time="2025-07-28T20:14:23Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface= pf="0000:a9:00.0" total_vfs=1
+time="2025-07-28T20:14:23Z" level=debug msg="found SR-IOV capable device" pci="0000:c6:00.0"
+time="2025-07-28T20:14:24Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=enp198s0np0 pf="0000:c6:00.0" total_vfs=1
+time="2025-07-28T20:14:24Z" level=debug msg="found SR-IOV capable device" pci="0000:c9:00.0"
+time="2025-07-28T20:14:24Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface= pf="0000:c9:00.0" total_vfs=1
+time="2025-07-28T20:14:24Z" level=debug msg="found SR-IOV capable device" pci="0000:e5:00.0"
+time="2025-07-28T20:14:24Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface= pf="0000:e5:00.0" total_vfs=1
+time="2025-07-28T20:14:24Z" level=debug msg="found SR-IOV capable device" pci="0000:e9:00.0"
+time="2025-07-28T20:14:24Z" level=info msg="discovered SR-IOV PF" enabled_vfs=0 interface=enp233s0np0 pf="0000:e9:00.0" total_vfs=1
+time="2025-07-28T20:14:24Z" level=info msg="SR-IOV discovery completed" pfs=20 vfs=256
+time="2025-07-28T20:14:24Z" level=info msg="Starting file system monitoring for SR-IOV changes"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:05:00.0"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:09:00.0"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:26:00.0"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:29:00.0"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:31:00.0"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:31:00.1"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:32:00.0"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:32:00.1"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:46:00.0"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:49:00.0"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:65:00.0"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:69:00.0"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:85:00.0"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:89:00.0"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:a6:00.0"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:a9:00.0"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:c6:00.0"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:c9:00.0"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:e5:00.0"
+time="2025-07-28T20:14:24Z" level=debug msg="added watch for SR-IOV device" device="0000:e9:00.0"
+time="2025-07-28T20:14:24Z" level=info msg="Starting SR-IOV management server on :50051"

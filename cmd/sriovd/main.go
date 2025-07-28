@@ -28,6 +28,9 @@ type server struct {
 		pfs map[string]*types.PFInfo
 		vfs map[string]*types.VFInfo
 	}
+
+	// File system monitor for real-time SR-IOV changes
+	fsMonitor *fsMonitor
 }
 
 // DumpInterfaces implements the gRPC DumpInterfaces method
@@ -67,6 +70,17 @@ func main() {
 		logger.WithError(err).Fatal("failed to discover SR-IOV devices")
 	}
 
+	// Initialize and start file system monitoring
+	fsMonitor, err := newFSMonitor(s)
+	if err != nil {
+		logger.WithError(err).Fatal("failed to create file system monitor")
+	}
+	s.fsMonitor = fsMonitor
+
+	if err := s.fsMonitor.start(); err != nil {
+		logger.WithError(err).Fatal("failed to start file system monitoring")
+	}
+
 	// Start gRPC server
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
@@ -84,6 +98,9 @@ func main() {
 		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 		<-sigChan
 		logger.Info("Shutting down server...")
+		if s.fsMonitor != nil {
+			s.fsMonitor.stop()
+		}
 		grpcServer.GracefulStop()
 	}()
 

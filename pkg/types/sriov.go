@@ -1,6 +1,6 @@
 package types
 
-// PFInfo represents a Physical Function
+// PFInfo represents information about a Physical Function
 type PFInfo struct {
 	PCIAddress       string             `json:"pci_address"`
 	InterfaceName    string             `json:"interface_name"`
@@ -19,11 +19,12 @@ type PFInfo struct {
 	Properties       map[string]string  `json:"properties"`
 	Capabilities     []PCICapability    `json:"capabilities"`
 	DeviceClass      string             `json:"device_class"`
+	Class            string             `json:"class"`
+	Description      string             `json:"description"`
 	VendorID         string             `json:"vendor_id"`
 	DeviceID         string             `json:"device_id"`
 	SubsysVendor     string             `json:"subsys_vendor"`
 	SubsysDevice     string             `json:"subsys_device"`
-	Description      string             `json:"description"`
 	VendorName       string             `json:"vendor_name"`
 	DeviceName       string             `json:"device_name"`
 	SubsysVendorName string             `json:"subsys_vendor_name"`
@@ -31,13 +32,13 @@ type PFInfo struct {
 	VFs              map[string]*VFInfo `json:"vfs"`
 }
 
-// VFInfo represents a Virtual Function
+// VFInfo represents information about a Virtual Function
 type VFInfo struct {
 	PCIAddress       string            `json:"pci_address"`
 	PFPCIAddress     string            `json:"pf_pci_address"`
 	InterfaceName    string            `json:"interface_name"`
-	VFIndex          int               `json:"vf_index"`
 	Driver           string            `json:"driver"`
+	VFIndex          int               `json:"vf_index"`
 	LinkState        string            `json:"link_state"`
 	LinkSpeed        string            `json:"link_speed"`
 	NUMANode         string            `json:"numa_node"`
@@ -52,11 +53,12 @@ type VFInfo struct {
 	Properties       map[string]string `json:"properties"`
 	Capabilities     []PCICapability   `json:"capabilities"`
 	DeviceClass      string            `json:"device_class"`
+	Class            string            `json:"class"`
+	Description      string            `json:"description"`
 	VendorID         string            `json:"vendor_id"`
 	DeviceID         string            `json:"device_id"`
 	SubsysVendor     string            `json:"subsys_vendor"`
 	SubsysDevice     string            `json:"subsys_device"`
-	Description      string            `json:"description"`
 	VendorName       string            `json:"vendor_name"`
 	DeviceName       string            `json:"device_name"`
 	SubsysVendorName string            `json:"subsys_vendor_name"`
