@@ -539,6 +539,9 @@ func displaySRIOVTable(data types.SRIOVData) {
 		fmt.Printf("  NUMA Node: %s\n", pfInfo.NUMANode)
 		fmt.Printf("  Total VFs: %d, Enabled VFs: %d\n", pfInfo.TotalVFs, pfInfo.NumVFs)
 		fmt.Printf("  SR-IOV Enabled: %t\n", pfInfo.SRIOVEnabled)
+		if pfInfo.EswitchMode != "" {
+			fmt.Printf("  E-Switch Mode: %s\n", pfInfo.EswitchMode)
+		}
 		fmt.Println()
 
 		if len(pfInfo.VFs) > 0 {
@@ -576,10 +579,10 @@ func displaySRIOVTable(data types.SRIOVData) {
 		// Display Representors if any exist
 		if len(pfInfo.Representors) > 0 {
 			fmt.Println("  Representors:")
-			fmt.Printf("  %-20s %-15s %-15s %-10s %-10s %-15s %-20s %-30s %-30s\n", "Interface", "PCI Address", "Driver", "NUMA Node", "VF Index", "Class", "Type", "Vendor", "Device")
-			fmt.Printf("  %-20s %-15s %-15s %-10s %-10s %-15s %-20s %-30s %-30s\n",
+			fmt.Printf("  %-20s %-15s %-15s %-10s %-10s %-15s %-30s %-30s\n", "Interface", "PCI Address", "Driver", "NUMA Node", "VF Index", "Class", "Vendor", "Device")
+			fmt.Printf("  %-20s %-15s %-15s %-10s %-10s %-15s %-30s %-30s\n",
 				strings.Repeat("-", 20), strings.Repeat("-", 15), strings.Repeat("-", 15),
-				strings.Repeat("-", 10), strings.Repeat("-", 10), strings.Repeat("-", 15), strings.Repeat("-", 20), strings.Repeat("-", 30), strings.Repeat("-", 30))
+				strings.Repeat("-", 10), strings.Repeat("-", 10), strings.Repeat("-", 15), strings.Repeat("-", 30), strings.Repeat("-", 30))
 
 			for repInterface, repInfo := range pfInfo.Representors {
 				// Truncate vendor and device names if too long
@@ -592,14 +595,13 @@ func displaySRIOVTable(data types.SRIOVData) {
 					deviceName = deviceName[:24] + "..."
 				}
 
-				fmt.Printf("  %-20s %-15s %-15s %-10s %-10d %-15s %-20s %-30s %-30s\n",
+				fmt.Printf("  %-20s %-15s %-15s %-10s %-10d %-15s %-30s %-30s\n",
 					repInterface,
 					repInfo.PCIAddress,
 					repInfo.Driver,
 					repInfo.NUMANode,
 					repInfo.VFIndex,
 					repInfo.DeviceClass,
-					repInfo.RepresentorType,
 					vendorName,
 					deviceName)
 			}
